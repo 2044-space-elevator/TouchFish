@@ -91,41 +91,72 @@ class ChatClient:
         self.chat_win.title(f"聊天室 - {self.username}")
         self.chat_win.geometry(f"600x400")
         
-        # 聊天记录框
-        self.chat_frame = tk.Frame(self.chat_win)
-        self.chat_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
+        self.chat_win.minsize(width=350, height=280)
+        
+        # 0行：聊天记录框，权重为1，表示它会尽可能地扩展占据垂直空间
+        self.chat_win.grid_rowconfigure(0, weight=1)
+        # 1行：消息输入框和发送按钮区域，权重为0，表示它保持其内容所需的最小高度
+        self.chat_win.grid_rowconfigure(1, weight=0)
+        # 2行：设置按钮区域，权重为0，表示它保持其内容所需的最小高度
+        self.chat_win.grid_rowconfigure(2, weight=0)
+        # 0列：主列，权重为1，表示它会尽可能地扩展占据水平空间
+        self.chat_win.grid_columnconfigure(0, weight=1)
+
+        # 聊天记录框 (现在是一个Frame，包含Text和Scrollbar)
+        self.chat_frame = tk.Frame(self.chat_win, bd=2, relief="sunken")
+        
+        self.chat_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=(10, 5)) # 粘附到所有方向以填充单元格
+        
+        # 配置 chat_frame 内部的 grid 布局
+        self.chat_frame.grid_rowconfigure(0, weight=1) # Text组件所在的行
+        self.chat_frame.grid_columnconfigure(0, weight=1) # Text组件所在的列
+
         scrollbar = tk.Scrollbar(self.chat_frame)
-        scrollbar.pack(side="right", fill="y")
         
+        scrollbar.grid(row=0, column=1, sticky="ns") # 粘附到垂直方向
+
         self.chat_text = tk.Text(
             self.chat_frame, 
             yscrollcommand=scrollbar.set,
             font=self.font_family,
-            state="disabled"
+            state="disabled",
+            wrap="word" # 确保文本自动换行
         )
-        self.chat_text.pack(fill="both", expand=True)
+        
+        self.chat_text.grid(row=0, column=0, sticky="nsew") # 粘附到所有方向
         scrollbar.config(command=self.chat_text.yview)
         
-        # 消息输入框
-        input_frame = tk.Frame(self.chat_win)
-        input_frame.pack(fill="x", padx=10, pady=5)
+        # 消息输入框 (现在是一个Frame，包含Text和Button)
+        input_frame = tk.Frame(self.chat_win, bg="#e0e0e0")
         
+        input_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5) # 粘附到东西方向
+
+        # 配置 input_frame 内部的 grid 布局
+        input_frame.grid_columnconfigure(0, weight=1) # 消息输入框所在的列，会扩展
+        input_frame.grid_columnconfigure(1, weight=0) # 发送按钮所在的列，保持最小宽度
+        input_frame.grid_rowconfigure(0, weight=1) # 确保Text组件可以垂直扩展
+
         self.msg_entry = tk.Text(
             input_frame, 
             height=3,
-            font=self.font_family
+            font=self.font_family,
+            wrap="word" # 确保输入框文本也自动换行
         )
-        self.msg_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        
+        self.msg_entry.grid(row=0, column=0, sticky="nsew", padx=(0, 5)) # 粘附到所有方向
         self.msg_entry.bind("<Control-Return>", lambda e: self.send_message())
         
         # 发送按钮
         send_btn = tk.Button(input_frame, text="发送", command=self.send_message)
-        send_btn.pack(side="right")
+        
+        send_btn.grid(row=0, column=1, sticky="ew") # 粘附到东西方向
         
         # 设置按钮
         setting_btn = tk.Button(self.chat_win, text="设置", command=self.open_settings)
-        setting_btn.pack(side="bottom", pady=5)
+        
+        setting_btn.grid(row=2, column=0, sticky="ew", pady=5) # 粘附到东西方向
+
         
 
 
