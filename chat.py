@@ -130,7 +130,7 @@ def add_accounts():
     while True:
         if EXIT_FLG:
             return
-        if (len(conn) > account_numbers):
+        if (len(conn) > int(account_numbers)):
             print("注意：连接数已满")
             sys.stdout.flush()
             break

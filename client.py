@@ -443,7 +443,7 @@ class ChatClient:
                     with open(save_path, "wb") as f:
                         for data in self.current_file["data"]:
                             f.write(data)
-                    self.display_message(f"[系统] 文件已保存到：{save_path}\n")
+                    self.display_message(f"[系统提示] 文件已保存到：{save_path}\n")
                     
                 self.receiving_file = False
                 self.current_file = {"name": "", "data": [], "size": 0}
@@ -451,7 +451,7 @@ class ChatClient:
         except json.JSONDecodeError:
             return False
         except Exception as e:
-            self.display_message(f"[系统] 文件接收出错：{str(e)}\n")
+            self.display_message(f"[系统提示] 文件接收出错：{str(e)}\n")
             self.receiving_file = False
             self.current_file = {"name": "", "data": [], "size": 0}
             return False
