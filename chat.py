@@ -8,6 +8,7 @@ import datetime
 import threading
 import sys
 import json
+import base64
 
 CONFIG_PATH = "config.json"
 
@@ -65,10 +66,10 @@ else:
 s = socket.socket()
 s.bind((ip, portin))
 s.listen(account_numbers)
-s.setblocking(0)
+s.setblocking(False)
 
 VERSION = "v1.3.0"
-s.setblocking(0)
+s.setblocking(False)
 NEWEST_VERSION = "UNKNOWN"
 
 try:
@@ -178,7 +179,7 @@ def add_accounts():
             conntmp.ioctl(socket.SIO_KEEPALIVE_VALS, (
                 1, 180 * 1000, 30 * 1000
             ))
-        conntmp.setblocking(0)
+        conntmp.setblocking(False)
         conn.append(conntmp)
         address.append(addresstmp)
         username[addresstmp[0]] = "UNKNOWN"
@@ -426,7 +427,7 @@ class Server(cmd.Cmd):
                 json.dump(dic_config_file, file)
         flush_txt += '\n'
 
-    def print_user(self, userlist : list[str]):
+    def print_user(self, userlist : "list[str]"):
         header = ["IP", "USERNAME", "IS_ONLINE", "IS_BANNED", "SEND_TIMES"]
         data_body = []
         for ip in userlist:

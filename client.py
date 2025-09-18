@@ -1,12 +1,22 @@
 import tkinter as tk
+from tkinter import ttk
 import socket
 import threading
 import platform
 import sys
 import requests
-from tkinter import messagebox
+import os
+import json
+from tkinter import messagebox, filedialog
 import datetime
 import win10toast
+import base64
+
+# 文件传输相关的常量
+FILE_START = "[FILE_START]"
+FILE_DATA = "[FILE_DATA]"
+FILE_END = "[FILE_END]"
+CHUNK_SIZE = 8192
 
 notifier = None
 if platform.system() == "Windows":
@@ -135,13 +145,23 @@ class ChatClient:
         self.msg_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
         self.msg_entry.bind("<Control-Return>", lambda e: self.send_message())
         
-        # 发送按钮
-        send_btn = tk.Button(input_frame, text="发送", command=self.send_message)
-        send_btn.pack(side="right")
+        # 发送按钮和文件按钮
+        btn_frame = tk.Frame(input_frame)
+        btn_frame.pack(side="right")
+        
+        send_btn = tk.Button(btn_frame, text="发送", command=self.send_message)
+        send_btn.pack(side="right", padx=2)
+        
+        file_btn = tk.Button(btn_frame, text="发送文件", command=self.send_file)
+        file_btn.pack(side="right", padx=2)
         
         # 设置按钮
         setting_btn = tk.Button(self.chat_win, text="设置", command=self.open_settings)
         setting_btn.pack(side="bottom", pady=5)
+        
+        # 初始化文件传输相关的变量
+        self.receiving_file = False
+        self.current_file = {"name": "", "data": [], "size": 0}
         
 
 
@@ -235,40 +255,54 @@ class ChatClient:
 
     def receive_messages(self):
         """接收消息的线程函数"""
+        buffer = ""
         while True:
             try:
-                message = self.socket.recv(1024).decode("utf-8")
-                if not message:
+                chunk = self.socket.recv(1024).decode("utf-8")
+                if not chunk:
                     continue
-                if self.notifier_enabled and not message.startswith(f"{self.username}:"):
-                    def notif_tmp():
-                        title = ""
-                        if message.startswith("[房主提示]"):
-                            title = "房主提示"
-                        elif message.startswith("[系统提示]"):
-                            title = "系统提示"
-                        elif message.startswith("[房主广播]"):
-                            title = "房主广播"
-                        else:
-                            username = message.split(":")[0]
-                            title = f"消息提示（来自 {username}）"
-                        notifier.show_toast(title, message, duration=2)
-                    if self.notifier_str:
-                        for v in self.notifier_str:
-                            if v in message:
-                                threading.Thread(target=notif_tmp).start()
-                                break
-                    else:
-                        threading.Thread(target=notif_tmp).start()
-                message_show = f"[{get_hh_mm_ss()}] " + message
-                
                     
-                # 在GUI线程更新界面
-                self.chat_win.after(0, self.display_message, message_show)
+                buffer += chunk
+                messages = buffer.split("\n")
+                buffer = messages.pop()  # 保留最后一个不完整的消息
                 
-                # 播放提示音
-                if self.bell_enabled and not message.startswith(f"{self.username}:"):
-                    self.play_notification_sound()
+                for message in messages:
+                    # 尝试处理文件传输消息
+                    if message.startswith("{") and message.endswith("}"):
+                        if self.handle_file_message(message):
+                            continue
+                            
+                    # 处理普通文本消息
+                    if self.notifier_enabled and not message.startswith(f"{self.username}:"):
+                        def notif_tmp():
+                            title = ""
+                            if message.startswith("[房主提示]"):
+                                title = "房主提示"
+                            elif message.startswith("[系统提示]"):
+                                title = "系统提示"
+                            elif message.startswith("[房主广播]"):
+                                title = "房主广播"
+                            else:
+                                username = message.split(":")[0]
+                                title = f"消息提示（来自 {username}）"
+                            if notifier:  # 检查notifier是否存在
+                                notifier.show_toast(title, message, duration=2)
+                        if self.notifier_str:
+                            for v in self.notifier_str:
+                                if v in message:
+                                    threading.Thread(target=notif_tmp).start()
+                                    break
+                        else:
+                            threading.Thread(target=notif_tmp).start()
+                    
+                    message_show = f"[{get_hh_mm_ss()}] " + message
+                    
+                    # 在GUI线程更新界面
+                    self.chat_win.after(0, self.display_message, message_show)
+                    
+                    # 播放提示音
+                    if self.bell_enabled and not message.startswith(f"{self.username}:"):
+                        self.play_notification_sound()
                     
             except Exception as e:
                 pass
@@ -294,6 +328,134 @@ class ChatClient:
                 os.system("paplay /usr/share/sounds/freedesktop/stereo/message.oga&")
         except:
             pass
+
+    def send_file(self):
+        """发送文件"""
+        file_path = filedialog.askopenfilename()
+        if not file_path:
+            return
+            
+        # 创建进度条窗口
+        progress_win = tk.Toplevel(self.chat_win)
+        progress_win.title("文件发送进度")
+        progress_win.geometry("300x150")
+        progress_win.transient(self.chat_win)
+        
+        progress_label = tk.Label(progress_win, text="准备发送文件...")
+        progress_label.pack(pady=10)
+        
+        progress_var = tk.DoubleVar()
+        progress_bar = ttk.Progressbar(
+            progress_win,
+            variable=progress_var,
+            maximum=100
+        )
+        progress_bar.pack(fill="x", padx=20, pady=10)
+        
+        def send_file_thread():
+            try:
+                file_name = os.path.basename(file_path)
+                file_size = os.path.getsize(file_path)
+                
+                # 发送文件开始标记
+                start_info = {
+                    "type": FILE_START,
+                    "name": file_name,
+                    "size": file_size
+                }
+                self.socket.send(f"{json.dumps(start_info)}\n".encode("utf-8"))
+                
+                # 读取并发送文件内容
+                sent_size = 0
+                with open(file_path, "rb") as f:
+                    while True:
+                        chunk = f.read(CHUNK_SIZE)
+                        if not chunk:
+                            break
+                            
+                        # base64编码
+                        chunk_b64 = base64.b64encode(chunk).decode("utf-8")
+                        
+                        # 发送数据块
+                        data_info = {
+                            "type": FILE_DATA,
+                            "data": chunk_b64
+                        }
+                        self.socket.send(f"{json.dumps(data_info)}\n".encode("utf-8"))
+                        
+                        # 更新进度
+                        sent_size += len(chunk)
+                        progress = (sent_size / file_size) * 100
+                        progress_win.after(0, lambda: progress_var.set(progress))
+                        progress_win.after(0, lambda: progress_label.config(
+                            text=f"发送进度：{progress:.1f}%"
+                        ))
+                        
+                # 发送文件结束标记
+                end_info = {
+                    "type": FILE_END
+                }
+                self.socket.send(f"{json.dumps(end_info)}\n".encode("utf-8"))
+                
+                progress_win.after(0, lambda: progress_label.config(text="文件发送完成！"))
+                progress_win.after(1000, progress_win.destroy)
+                
+            except Exception as e:
+                messagebox.showerror("发送错误", f"文件发送失败：\n{str(e)}")
+                progress_win.destroy()
+        
+        # 在新线程中发送文件
+        threading.Thread(target=send_file_thread).start()
+
+    def handle_file_message(self, message):
+        """处理文件传输相关的消息"""
+        try:
+            msg_data = json.loads(message)
+            
+            if msg_data["type"] == FILE_START:
+                self.receiving_file = True
+                self.current_file = {
+                    "name": msg_data["name"],
+                    "data": [],
+                    "size": msg_data["size"]
+                }
+                # 询问用户是否接收文件
+                if messagebox.askyesno("文件接收", 
+                    f"是否接收文件：{msg_data['name']} ({msg_data['size'] / 1024 / 1024:.1f}MB)？"):
+                    self.display_message(f"[系统] 开始接收文件：{msg_data['name']}\n")
+                else:
+                    self.receiving_file = False
+                    self.current_file = {"name": "", "data": [], "size": 0}
+                    
+            elif msg_data["type"] == FILE_DATA and self.receiving_file:
+                self.current_file["data"].append(base64.b64decode(msg_data["data"]))
+                received_size = sum(len(d) for d in self.current_file["data"])
+                progress = (received_size / self.current_file["size"]) * 100
+                self.display_message(f"\r[系统] 文件接收进度：{progress:.1f}%")
+                
+            elif msg_data["type"] == FILE_END and self.receiving_file:
+                # 保存文件
+                save_path = filedialog.asksaveasfilename(
+                    defaultextension=".*",
+                    initialfile=self.current_file["name"]
+                )
+                if save_path:
+                    with open(save_path, "wb") as f:
+                        for data in self.current_file["data"]:
+                            f.write(data)
+                    self.display_message(f"[系统] 文件已保存到：{save_path}\n")
+                    
+                self.receiving_file = False
+                self.current_file = {"name": "", "data": [], "size": 0}
+                
+        except json.JSONDecodeError:
+            return False
+        except Exception as e:
+            self.display_message(f"[系统] 文件接收出错：{str(e)}\n")
+            self.receiving_file = False
+            self.current_file = {"name": "", "data": [], "size": 0}
+            return False
+        return True
 
     def on_closing(self):
         """关闭窗口时的处理"""
