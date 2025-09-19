@@ -3,50 +3,49 @@ name: Build and Push Python Binaries
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
-  build-and-push-linux:
-    name: Compile on Linux and Push
+  build-linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
+
       - name: Install PyInstaller
         run: pip install -r requirements_linux.txt
-      - name: Compile and move executables
+
+      - name: Compile chat.py for Linux
         run: |
           mkdir -p bin/linux
           pyinstaller --onefile --distpath bin/linux chat.py
+          rm chat.spec
+
+      - name: Compile client.py for Linux
+        run: |
+          mkdir -p bin/linux
           pyinstaller --onefile --noconsole --distpath bin/linux client.py
-          # 删缓存
-          rm -rf build/ chat.spec client.spec
+          rm client.spec
+          rm -rf build/
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-
-      - name: Pull, add, commit, and push binaries
-        run: |
-          git pull --rebase
-          git add bin/linux/
-          git commit -m "[skip ci] [bot] Add Linux binaries" || echo "No changes to commit"
-          git push
-
-  build-and-push-windows:
-    name: Compile on Windows and Push
+      - name: Upload Linux binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: bin/linux/
+          
+  build-windows:
     runs-on: windows-latest
-    needs: [build-and-push-linux] # Wait for the Linux job to finish
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -54,26 +53,58 @@ jobs:
           cache: 'pip'
 
       - name: Install PyInstaller
-        run: pip install -r requirements.txt
-        
-      - name: Compile and move executables
+        run: pip install -r requirements.txt 
+
+      - name: Compile chat.py for Windows
         run: |
           mkdir bin\windows
           pyinstaller --onefile --distpath bin/windows chat.py
+          Remove-Item -Path "chat.spec"
+
+      - name: Compile client.py for Windows
+        run: |
           pyinstaller --onefile --noconsole --distpath bin/windows client.py
-          # Remove PyInstaller's temporary directories
+          Remove-Item -Path "client.spec"
           Remove-Item -Path ".\build" -Recurse -Force
-          Remove-Item -Path ".\chat.spec"
-          Remove-Item -Path ".\client.spec"
+          
+      - name: Upload Windows binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: bin/windows/
+
+  push-binaries:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Download Windows binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-binaries
+          path: bin/windows/
+
+      - name: Download Linux binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-binaries
+          path: bin/linux/
 
       - name: Configure Git
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
 
-      - name: Pull, add, commit, and push binaries
+      - name: Add and commit binaries
         run: |
-          git pull --rebase
           git add bin/windows/
-          git commit -m "[skip ci] [bot] Add Windows binaries" || echo "No changes to commit"
-          git push
+          git add bin/linux/
+          git commit -m "[skip ci] [bin] Add compiled binaries" || echo "No changes to commit"
+
+      - name: Push changes
+        run: git push
