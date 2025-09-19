@@ -422,7 +422,7 @@ class ChatClient:
                 # 询问用户是否接收文件
                 if messagebox.askyesno("文件接收", 
                     f"是否接收文件：{msg_data['name']} ({msg_data['size'] / 1024 / 1024:.1f}MB)？"):
-                    self.display_message(f"[系统] 开始接收文件：{msg_data['name']}\n")
+                    self.display_message(f"[系统提示] 开始接收文件：{msg_data['name']}\n")
                 else:
                     self.receiving_file = False
                     self.current_file = {"name": "", "data": [], "size": 0}
@@ -431,7 +431,7 @@ class ChatClient:
                 self.current_file["data"].append(base64.b64decode(msg_data["data"]))
                 received_size = sum(len(d) for d in self.current_file["data"])
                 progress = (received_size / self.current_file["size"]) * 100
-                self.display_message(f"\r[系统] 文件接收进度：{progress:.1f}%")
+                self.display_message(f"\r[系统提示] 文件接收进度：{progress:.1f}%")
                 
             elif msg_data["type"] == FILE_END and self.receiving_file:
                 # 保存文件
