@@ -37,6 +37,7 @@ class ChatClient:
         self.bell_enabled = False
         self.notifier_enabled = False
         self.notifier_str = []
+        self.sending_file = None  # 添加标志来跟踪正在发送的文件
         
         self.create_connection_window()
         self.root.mainloop()
@@ -106,7 +107,7 @@ class ChatClient:
             self.create_chat_window()  # 打开聊天窗口
             # 启动消息接收线程
             threading.Thread(target=self.receive_messages, daemon=True).start()
-            # self.receive_messages()
+            self.chat_win.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.chat_win.mainloop()
         except Exception as e:
             messagebox.showerror("连接错误", f"无法连接到服务器:\n{str(e)}")
@@ -163,7 +164,6 @@ class ChatClient:
         self.receiving_file = False
         self.current_file = {"name": "", "data": [], "size": 0}
         
-
 
     def open_settings(self):
         """打开设置窗口"""
@@ -242,8 +242,8 @@ class ChatClient:
 
     def send_message(self):
         """发送消息"""
-        message = self.msg_entry.get("1.0", "end").strip()
-        if not message:
+        message = self.msg_entry.get("1.0", "end-1c") # 使用 end-1c 获取不带末尾换行符的内容
+        if not message.strip():
             return
             
         full_msg = f"{self.username}: {message}\n"
@@ -255,18 +255,21 @@ class ChatClient:
 
     def receive_messages(self):
         """接收消息的线程函数"""
-        buffer = ""
+        buffer = b""
         while True:
             try:
-                chunk = self.socket.recv(1024).decode("utf-8")
+                # 接收原始字节数据
+                chunk = self.socket.recv(1024)
                 if not chunk:
                     continue
                     
                 buffer += chunk
-                messages = buffer.split("\n")
-                buffer = messages.pop()  # 保留最后一个不完整的消息
-                
-                for message in messages:
+
+                # 使用 b'\n' 作为分隔符处理消息
+                while b'\n' in buffer:
+                    message_bytes, buffer = buffer.split(b'\n', 1)
+                    message = message_bytes.decode('utf-8')
+
                     # 尝试处理文件传输消息
                     if message.startswith("{") and message.endswith("}"):
                         if self.handle_file_message(message):
@@ -298,14 +301,17 @@ class ChatClient:
                     message_show = f"[{get_hh_mm_ss()}] " + message
                     
                     # 在GUI线程更新界面
-                    self.chat_win.after(0, self.display_message, message_show)
+                    self.chat_win.after(0, self.display_message, message_show + "\n")
                     
                     # 播放提示音
                     if self.bell_enabled and not message.startswith(f"{self.username}:"):
                         self.play_notification_sound()
                     
             except Exception as e:
+                # 打印异常信息以便调试
+                print(f"Error in receive_messages: {e}")
                 pass
+
 
     def display_message(self, message):
         """在聊天框中显示消息"""
@@ -334,6 +340,9 @@ class ChatClient:
         file_path = filedialog.askopenfilename()
         if not file_path:
             return
+
+        file_name = os.path.basename(file_path)
+        self.sending_file = file_name
             
         # 创建进度条窗口
         progress_win = tk.Toplevel(self.chat_win)
@@ -413,6 +422,10 @@ class ChatClient:
             msg_data = json.loads(message)
             
             if msg_data["type"] == FILE_START:
+                # 检查是否是自己正在发送的文件
+                if self.sending_file == msg_data["name"]:
+                    return True
+                    
                 self.receiving_file = True
                 self.current_file = {
                     "name": msg_data["name"],
@@ -431,9 +444,14 @@ class ChatClient:
                 self.current_file["data"].append(base64.b64decode(msg_data["data"]))
                 received_size = sum(len(d) for d in self.current_file["data"])
                 progress = (received_size / self.current_file["size"]) * 100
-                self.display_message(f"\r[系统提示] 文件接收进度：{progress:.1f}%")
+                # 在GUI线程更新进度
+                self.chat_win.after(0, self.update_file_progress, progress)
                 
             elif msg_data["type"] == FILE_END and self.receiving_file:
+                if self.sending_file == self.current_file["name"]:
+                    self.sending_file = None
+                    return True
+
                 # 保存文件
                 save_path = filedialog.asksaveasfilename(
                     defaultextension=".*",
@@ -457,9 +475,17 @@ class ChatClient:
             return False
         return True
 
+    def update_file_progress(self, progress):
+        """更新文件接收进度"""
+        self.chat_text.config(state="normal")
+        # 删除上一行进度提示
+        self.chat_text.delete("end-2l", "end-1l")
+        self.display_message(f"[系统提示] 文件接收进度：{progress:.1f}%\n")
+
     def on_closing(self):
         """关闭窗口时的处理"""
         try:
+            self.socket.send(f"用户 {self.username} 离开了聊天室。".encode("utf-8"))
             self.socket.close()
         except:
             pass
