@@ -1,11 +1,13 @@
+name: Build and Push Python Binaries
+
 on:
   push:
     branches:
       - main
 
 jobs:
-  jo-linux:
-    name: Compile in linux
+  build-and-push-linux:
+    name: Compile on Linux and Push
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -15,59 +17,63 @@ jobs:
         with:
           python-version: '3.10'
           cache: 'pip'
-      - name: Install Pyinstaller
-        run: pip install -r requirements_linux.txt 
-      - name: Compile
+      - name: Install PyInstaller
+        run: pip install -r requirements_linux.txt
+      - name: Compile and move executables
         run: |
-          cd bin
-          cd linux
-          pyinstaller --onefile ../../chat.py
-          pyinstaller --onefile --noconsole ../../client.py
-          rm chat.spec
-          rm client.spec
-          rm -rf build/*
-          rmdir build
-          cp -rf dist/chat .
-          cp -rf dist/client .
-          rm dist/*
-          rmdir dist
-          cd ../..
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git pull
-          git add .
-          git commit -m "[Bot]Push binary file"
+          mkdir -p bin/linux
+          pyinstaller --onefile --distpath bin/linux chat.py
+          pyinstaller --onefile --noconsole --distpath bin/linux client.py
+          # 删缓存
+          rm -rf build/ chat.spec client.spec
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+      - name: Pull, add, commit, and push binaries
+        run: |
+          git pull --rebase
+          git add bin/linux/
+          git commit -m "[skip ci] [bot] Add Linux binaries" || echo "No changes to commit"
           git push
-  jo-windows:
-    name: Compile in windows
+
+  build-and-push-windows:
+    name: Compile on Windows and Push
     runs-on: windows-latest
+    needs: [build-and-push-linux] # Wait for the Linux job to finish
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
-      - name: Install Pyinstaller
-        run: pip install -r requirements.txt 
-      - name: Compile
-        run: |
-          cd bin
-          cd windows
-          Copy-Item -Path ../../hook-win10toast.py C:\\hostedtoolcache\\windows\\Python\\3.10.11\\x64\\lib\\site-packages\\PyInstaller\\hooks\\
-          pyinstaller --onefile ../../chat.py
-          pyinstaller --onefile --noconsole ../../client.py
-          rm chat.spec
-          rm client.spec
-          Copy-Item -Path ./dist/* -destination ./
-          remove-item -path "./dist" -recurse
-          remove-item -path "./build" -recurse
-          cd ../..
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git pull
-          git add .
-          git commit -m "[Bot]Push binary file"
-          git push
+
+      - name: Install PyInstaller
+        run: pip install -r requirements.txt
         
+      - name: Compile and move executables
+        run: |
+          mkdir bin\windows
+          pyinstaller --onefile --distpath bin/windows chat.py
+          pyinstaller --onefile --noconsole --distpath bin/windows client.py
+          # Remove PyInstaller's temporary directories
+          Remove-Item -Path ".\build" -Recurse -Force
+          Remove-Item -Path ".\chat.spec"
+          Remove-Item -Path ".\client.spec"
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+      - name: Pull, add, commit, and push binaries
+        run: |
+          git pull --rebase
+          git add bin/windows/
+          git commit -m "[skip ci] [bot] Add Windows binaries" || echo "No changes to commit"
+          git push
