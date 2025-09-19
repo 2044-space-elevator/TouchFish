@@ -3,7 +3,7 @@ name: Build and Push Python Binaries
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-linux:
@@ -18,20 +18,13 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
-      - name: Install PyInstaller
-        run: pip install -r requirements_linux.txt
-
-      - name: Compile chat.py for Linux
+      - name: Compile Python scripts for Linux
         run: |
+          pip install -r requirements_linux.txt
           mkdir -p bin/linux
           pyinstaller --onefile --distpath bin/linux chat.py
-          rm chat.spec
-
-      - name: Compile client.py for Linux
-        run: |
-          mkdir -p bin/linux
           pyinstaller --onefile --noconsole --distpath bin/linux client.py
-          rm client.spec
+          rm chat.spec client.spec
           rm -rf build/
 
       - name: Upload Linux binaries
@@ -52,19 +45,13 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
-      - name: Install PyInstaller
-        run: pip install -r requirements.txt 
-
-      - name: Compile chat.py for Windows
+      - name: Compile Python scripts for Windows
         run: |
-          mkdir bin\windows
+          pip install -r requirements.txt
+          mkdir -Force bin/windows
           pyinstaller --onefile --distpath bin/windows chat.py
-          Remove-Item -Path "chat.spec"
-
-      - name: Compile client.py for Windows
-        run: |
           pyinstaller --onefile --noconsole --distpath bin/windows client.py
-          Remove-Item -Path "client.spec"
+          Remove-Item -Path "chat.spec", "client.spec" -Force
           Remove-Item -Path ".\build" -Recurse -Force
           
       - name: Upload Windows binaries
