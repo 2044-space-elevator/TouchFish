@@ -3,7 +3,7 @@ name: Build and Push Python Binaries
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build-linux:
@@ -91,7 +91,7 @@ jobs:
         run: |
           git add bin/windows/
           git add bin/linux/
-          git commit -m "[skip ci] [bin] Add compiled binaries" || echo "No changes to commit"
+          git commit -m "[skip ci] [Bot] Add compiled binaries" || echo "No changes to commit"
 
       - name: Push changes
         run: git push
