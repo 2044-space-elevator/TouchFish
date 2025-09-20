@@ -68,7 +68,7 @@ s.bind((ip, portin))
 s.listen(account_numbers)
 s.setblocking(False)
 
-VERSION = "v1.3.0"
+VERSION = "v2.0.0"
 s.setblocking(False)
 NEWEST_VERSION = "UNKNOWN"
 
