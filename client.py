@@ -71,7 +71,7 @@ class ChatClient:
         # 提示
         tk.Label(frame, text="提示: Ctrl+Enter 发送消息").grid(row=4, columnspan=2)
 
-        CURRENT_VERSION = "v1.4.0"
+        CURRENT_VERSION = "v2.0.0"
         try:
             NEWEST_VERSION = requests.get("https://www.bopid.cn/chat/newest_version_client.html").content.decode()
         except:
