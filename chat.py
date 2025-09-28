@@ -61,10 +61,10 @@ if len(sys.argv) == 4:
         exit()
 
 else:
-    print("You can use command, `chat <IP> <MAXNUMBER> <PORT>` to start it.")
-    ip = input("Connect to IP:")
-    account_numbers = eval(input("The maximum times of connectng:"))
-    portin = eval(input("The connecting port (must be spare):"))
+    print("You can use the command `chat <IP> <MAXNUMBER> <PORT>` (with the prefix './' if needed) to start it.")
+    ip = input("Connect to IP: ")
+    account_numbers = eval(input("The maximum times of connecting: "))
+    portin = eval(input("The connecting port (must be spare): "))
 
 s = socket.socket()
 s.bind((ip, portin))
@@ -84,12 +84,12 @@ def time_str() -> str:
     return str(datetime.datetime.now())
 
 with open("./log.txt", "w+") as file:
-    file.write(f"[{time_str()}] TouchFish(Server) started successfully, {ip}:{portin}.\n")
+    file.write(f"[{time_str()}] TouchFish(Server) started successfully, {ip}: {portin}.\n")
 
 """
 conn:       链接操作口          [socket.socket()]
 address:    IP                 [(str, int)]
-username:   用户名、IP对应      {str : str}
+username:   用户名、IP 对应     {str : str}
 requestion: 申请加入队列        [(socket.socket(), (str, int)) or None]
 """
 conn = []
@@ -116,6 +116,8 @@ if not ENTER_HINT.split('\n'):
 if ENTER_HINT and ('\n' not in ENTER_HINT):
     ENTER_HINT += '\n'
 
+if ENTER_HINT == "":
+    ENTER_HINT = "（没有提示）"
 print("您当前的进入提示是（注意使用的是 utf-8）：" + ENTER_HINT)
 SHOW_ENTER_MESSAGE = dic_config_file["SHOW_ENTER_MESSAGE"]
 EXIT_FLG = False 
@@ -160,7 +162,7 @@ def add_accounts():
                 conntmp.send(bytes("[系统提示] 本聊天室需要房主确认后加入，请等待房主同意。\n", encoding="utf-8"))
             except:
                 pass
-            flush_txt += f"[{time_str()}] <{len(requestion)}> User {addresstmp} request to enter the chatting room.\n"
+            flush_txt += f"[{time_str()}] <{len(requestion)}> User {addresstmp} requested an entry to the chatting room.\n"
             print(f"\n<{len(requestion)}> 用户 {addresstmp} 申请加入聊天室，请处理。\n{ip}:{portin}> ", end="")
             sys.stdout.flush()
             requestion.append((conntmp, addresstmp))
@@ -173,7 +175,7 @@ def add_accounts():
 
         if_online[addresstmp[0]] = True
         msg_counts[addresstmp[0]] = 0 
-        flush_txt += f"[{time_str()}] User {addresstmp} connected to server.\n"
+        flush_txt += f"[{time_str()}] User {addresstmp} has connected to server.\n"
         
 
         if platform.system() != "Windows":
@@ -231,7 +233,7 @@ def receive_msg():
             else:
                 username_tmp = "UNKNOWN"
             username[address[i][0]] = username_tmp
-            flush_txt += f"[{time_str()}] User {address[i]} send a msg: {data}"
+            flush_txt += f"[{time_str()}] User {address[i]} sent a massage: {data}"
 
             new_conn_lst = []
             new_add_lst = []
@@ -254,9 +256,9 @@ def receive_msg():
 admin_socket = None
 class Server(cmd.Cmd):
     prompt = f"{ip}:{portin}> "
-    intro = f"""欢迎来到 TouchFish！当前版本 {VERSION}，最新版本 {NEWEST_VERSION}
+    intro = f"""欢迎来到 TouchFish！当前版本：{VERSION}，最新版本：{NEWEST_VERSION}
 如果想知道有什么命令，请输入 help
-具体的使用指南，参见 help <你想用的命令>。详细地，见 wiki，https://github.com/2044-space-elevator/TouchFish/wiki/How-to-use-chat.exe
+具体的使用指南，参见 help <你想用的命令>。详细的使用指南，见 wiki：https://github.com/2044-space-elevator/TouchFish/wiki/How-to-use-chat.exe
 注意：消息无法实时更新，需要输入 flush 命令将缓冲区输出到 ./log.txt。
 永久配置文件位于目录下的 ./config.json"""
     def __init__(self):
@@ -290,10 +292,10 @@ class Server(cmd.Cmd):
                     dic_config_file["ban"]["ip"].append(ip)
                 ban_ip_lst.append(ip)
                 try:
-                    send_all(f"[系统提示] {operator}封禁了用户 {ip}, 用户名 {username[ip]}\n")
+                    send_all(f"[系统提示] {operator} 封禁了用户 {ip}, 用户名 {username[ip]}\n")
                 except:
                     pass
-            flush_txt += f"[{time_str()}] {operator} banned ip {','.join(arg)}.\n"
+            flush_txt += f"[{time_str()}] {operator} banned the user(s) from IP(s) {', '.join(arg)}.\n"
         
         if arg[0] == 'words':
             arg = arg[1:]
@@ -301,18 +303,18 @@ class Server(cmd.Cmd):
                 if SAVE_CONFIG:
                     dic_config_file["ban"]["words"].append(word)
                 ban_words_lst.append(word)
-            flush_txt += f"[{time_str()}] {operator} banned words {','.join(arg)}.\n"
+            flush_txt += f"[{time_str()}] {operator} banned the word(s) {', '.join(arg)}.\n"
         
         if arg[0] == "length":
             try:
                 arg[1] = int(arg[1])
             except:
                 return "[Error] 参数错误\n"
-            send_all(f"[系统提示] {operator}设置了发送信息的长度最高为 {arg[1]}。\n")
+            send_all(f"[系统提示] {operator} 设置了发送信息的长度最大为 {arg[1]}。\n")
             if SAVE_CONFIG:
                 dic_config_file["ban"]["length"] = arg[1]
             ban_length = arg[1]
-            flush_txt += f"[{time_str()}] {operator} limited message length: {ban_length}\n"
+            flush_txt += f"[{time_str()}] {operator} limited message length to: {ban_length}\n"
 
         dic_config_file["ban"]["ip"] = list(set(dic_config_file["ban"]["ip"]))
         dic_config_file["ban"]["words"] = list(set(dic_config_file["ban"]["words"]))
@@ -357,10 +359,10 @@ class Server(cmd.Cmd):
                         pass
                 try:
                     ban_ip_lst.remove(ip)
-                    send_all(f"[系统提示] {operator}解除封禁了 IP {ip}，用户名 {username[ip]}。\n")
+                    send_all(f"[系统提示] {operator} 解除封禁了 IP {ip}，用户名 {username[ip]}。\n")
                 except:
                     pass
-            flush_txt += f"[{time_str()}] {operator} unbanned ip {','.join(arg)}.\n"
+            flush_txt += f"[{time_str()}] {operator} unbanned the user(s) from IP(s) {', '.join(arg)}.\n"
         
         if arg[0] == 'words':
             arg = arg[1:]
@@ -374,7 +376,7 @@ class Server(cmd.Cmd):
                     ban_words_lst.remove(word)
                 except:
                     pass
-            flush_txt += f"[{time_str()}] {operator} unbanned words {','.join(arg)}.\n"
+            flush_txt += f"[{time_str()}] {operator} unbanned the word(s) {', '.join(arg)}.\n"
 
         if SAVE_CONFIG:
             with open(CONFIG_PATH, "w+") as f:
@@ -427,7 +429,7 @@ class Server(cmd.Cmd):
         
         flush_txt += f'[{time_str()}] {operator} set {arg[0]} as {arg[1]}'
         if len(arg) == 3:
-            flush_txt += f" and save it in config."
+            flush_txt += f" and saved it in the configuration."
             with open(CONFIG_PATH, "w+") as file:
                 json.dump(dic_config_file, file)
         flush_txt += '\n'
@@ -436,8 +438,8 @@ class Server(cmd.Cmd):
     def do_enable(self, arg):
         """
         使用方法（~ 表示 enable)：
-            ~ ip <*ip1> <*ip2> ... <*ipk>   解禁这 k 个 ip
-            ~ words <*w1> <*w2> ... <*wk>   删除这 k 个屏蔽词
+            ~ ip <*ip1> <*ip2> ... <*ipK>   解禁这 K 个 IP
+            ~ words <*w1> <*w2> ... <*wK>   删除这 K 个屏蔽词
             在 enable 命令的后面直接加 forever，可以使得本设置保存到配置文件。下一次启动本目录的 server 时能使用。
         """
         OP_MSG = self.enable(arg, "房主")
@@ -446,8 +448,8 @@ class Server(cmd.Cmd):
     def do_ban(self, arg):
         """
         使用方法（~ 表示 ban)：
-            ~ ip <*ip1> <*ip2> ... <*ipk>   封禁这 k 个 ip
-            ~ words <*w1> <*w2> ... <*wk>   添加这 k 个屏蔽词
+            ~ ip <*ip1> <*ip2> ... <*ipK>   封禁这 K 个 IP
+            ~ words <*w1> <*w2> ... <*wK>   添加这 K 个屏蔽词
             ~ length <*len>                 拒绝分发所有长度大于 len 的信息
             在 ban 命令的后面直接加 forever，可以使得本设置保存到配置文件。下一次启动本目录的 server 时能使用。
         """
@@ -478,7 +480,7 @@ class Server(cmd.Cmd):
         try:
             flush_txt += f"[{time_str()}] <{rid}> User {requestion[rid][1]} was rejected to enter in the chatting room.\n"
             OP_MSG += f"{operator}拒绝第 {rid} 号请求（用户 {requestion[rid][1]}。\n"
-            requestion[rid][0].send(bytes(f"[系统提示] {operator}被拒绝加入聊天室\n", encoding="utf-8"))
+            requestion[rid][0].send(bytes(f"[系统提示] {operator} 被拒绝加入聊天室\n", encoding="utf-8"))
             requestion[rid] = None
         except:
             OP_MSG += f"[Error] 第 {rid} 次提示信息发送失败\n"
@@ -508,8 +510,8 @@ class Server(cmd.Cmd):
 
             conn.append(requestion[rid][0])
             address.append(requestion[rid][1])
-            requestion[rid][0].send(bytes(f"[系统提示] {operator}已准许您加入聊天室\n", encoding="utf-8"))
-            flush_txt += f"[{time_str()}] <{rid}> User {requestion[rid][1]} was accepted to enter in the chatting room.\n"
+            requestion[rid][0].send(bytes(f"[系统提示] {operator} 已准许您加入聊天室\n", encoding="utf-8"))
+            flush_txt += f"[{time_str()}] <{rid}> User {requestion[rid][1]} was accepted to enter the chatting room.\n"
             OP_MSG += f"{operator}准许了第 {rid} 号请求，用户 {requestion[rid][1]} 进入聊天室。\n"
             requestion[rid] = None
         except:
@@ -539,7 +541,7 @@ class Server(cmd.Cmd):
     def do_accept(self, arg):
         """
         使用方法（~ 表示 accept）：
-            ~ <rid1> <rid2> <rid3> ... <ridk> 准许第 rid1,rid2,rid3,...,ridk 号进入请求
+            ~ <rid1> <rid2> <rid3> ... <ridK> 准许第 rid1, rid2, rid3, ..., ridK 号进入请求
         """
         OP_MSG = self.accept_multi(arg, "房主")
         print(OP_MSG, end="")
@@ -564,7 +566,7 @@ class Server(cmd.Cmd):
     def do_reject(self, arg):
         """
         使用方法（~ 表示 reject）：
-            ~ <rid1> <rid2> <rid3> ... <ridk> 拒绝第 rid1,rid2,rid3,...,ridk 号进入请求
+            ~ <rid1> <rid2> <rid3> ... <ridK> 拒绝第 rid1, rid2, rid3, ..., ridK 号进入请求
         """
         OP_MSG = self.reject_multi(arg, "房主")
         print(OP_MSG, end="")
@@ -660,7 +662,7 @@ class Server(cmd.Cmd):
     def do_search(self, arg):
         """
         使用方法（~ 表示 search）：
-            ~ ip <*ip>              搜索所有 ip 为 *ip 的用户信息，支持正则。
+            ~ ip <*ip>              搜索所有 IP 为 *ip 的用户信息，支持正则。
             ~ user <*user>          搜索所有 username 为 *user 的用户信息（支持正则）
             ~ online                搜索所有在线的用户的信息
             ~ offline               搜索所有离线的用户的信息
@@ -693,8 +695,8 @@ class Server(cmd.Cmd):
         多管理员模式
         ~ on 开启多管理员模式
         ~ off 关闭多管理员模式
-        ~ add <ip1> <ip2> ... <ipk> 允许 <ip1>,<ip2>,...,<ipk> 成为管理员
-        ~ remove <ip1> <ip2> ... <ipk> 将 <ip1>,<ip2>,...,<ipk> 从管理员中移除
+        ~ add <ip1> <ip2> ... <ipK> 允许 <ip1>, <ip2>, ..., <ipK> 成为管理员
+        ~ remove <ip1> <ip2> ... <ipK> 将 <ip1>, <ip2>, ..., <ipK> 从管理员中移除
         """
         global admin_socket
         global admins
