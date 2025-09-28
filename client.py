@@ -50,19 +50,19 @@ class ChatClient:
         frame.pack()
 
         # 服务器地址
-        tk.Label(frame, text="服务器IP:").grid(row=0, column=0, sticky="w")
+        tk.Label(frame, text="服务器 IP：").grid(row=0, column=0, sticky="w")
         self.ip_entry = tk.Entry(frame, width=20)
         self.ip_entry.grid(row=0, column=1, pady=5)
         self.ip_entry.insert(0, "127.0.0.1")
 
         # 端口
-        tk.Label(frame, text="端口:").grid(row=1, column=0, sticky="w")
+        tk.Label(frame, text="端口：").grid(row=1, column=0, sticky="w")
         self.port_entry = tk.Entry(frame, width=10)
         self.port_entry.grid(row=1, column=1, pady=5, sticky="w")
         self.port_entry.insert(0, "8080")
 
         # 用户名
-        tk.Label(frame, text="用户名:").grid(row=2, column=0, sticky="w")
+        tk.Label(frame, text="用户名：").grid(row=2, column=0, sticky="w")
         self.user_entry = tk.Entry(frame, width=20)
         self.user_entry.grid(row=2, column=1, pady=5)
 
@@ -78,7 +78,7 @@ class ChatClient:
             NEWEST_VERSION = requests.get("https://www.bopid.cn/chat/newest_version_client.html").content.decode()
         except:
             NEWEST_VERSION = "UNKNOWN"
-        tk.Label(frame, text=f"提示2：当前版本为 {CURRENT_VERSION}，最新版本为 {NEWEST_VERSION}").grid(row=5, columnspan=2)
+        tk.Label(frame, text=f"提示 2：当前版本为 {CURRENT_VERSION}，最新版本为 {NEWEST_VERSION}").grid(row=5, columnspan=2)
 
     def connect_to_server(self):
         """连接到服务器"""
@@ -112,7 +112,7 @@ class ChatClient:
             self.chat_win.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.chat_win.mainloop()
         except Exception as e:
-            messagebox.showerror("连接错误", f"无法连接到服务器:\n{str(e)}")
+            messagebox.showerror("连接错误", f"无法连接到服务器：\n{str(e)}")
 
     def create_chat_window(self):
         """创建聊天窗口"""
@@ -178,12 +178,12 @@ class ChatClient:
         font_frame = tk.LabelFrame(settings_win, text="字体设置", padx=10, pady=10)
         font_frame.pack(padx=10, pady=5, fill="x")
 
-        tk.Label(font_frame, text="字体名称:").grid(row=0, column=0, sticky="w")
+        tk.Label(font_frame, text="字体名称：").grid(row=0, column=0, sticky="w")
         font_name_entry = tk.Entry(font_frame)
         font_name_entry.grid(row=0, column=1, padx=5, pady=2)
         font_name_entry.insert(0, self.font_family[0])
 
-        tk.Label(font_frame, text="字体大小:").grid(row=1, column=0, sticky="w")
+        tk.Label(font_frame, text="字体大小：").grid(row=1, column=0, sticky="w")
         font_size_entry = tk.Entry(font_frame)
         font_size_entry.grid(row=1, column=1, padx=5, pady=2)
         font_size_entry.insert(0, str(self.font_family[1]))
@@ -203,7 +203,7 @@ class ChatClient:
         notifier_var = tk.BooleanVar(value=self.notifier_enabled)
         notifier_check = tk.Checkbutton(
             bell_frame,
-            text="启用 Windows 通知（无声音，仅限 windows 系统）",
+            text="启用 Windows 通知（无声音，仅限 Windows 系统）",
             variable=notifier_var,
             state="normal" if platform.system() == "Windows" else "disabled"
         )
@@ -267,7 +267,7 @@ class ChatClient:
             self.socket.send(full_msg.encode("utf-8"))
             self.msg_entry.delete("1.0", "end")
         except Exception as e:
-            messagebox.showerror("发送错误", f"消息发送失败:\n{str(e)}")
+            messagebox.showerror("发送错误", f"消息发送失败：\n{str(e)}")
 
     def receive_messages(self):
         """接收消息的线程函数"""
