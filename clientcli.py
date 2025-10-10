@@ -135,6 +135,7 @@ class ChatClientCLI:
         print("-" * 50)
         
         while True:
+            time.sleep(0.1)
             try:
                 message = input().strip()
                 
@@ -200,6 +201,7 @@ class ChatClientCLI:
         """接收消息的线程函数"""
         buffer = b""
         while True:
+            time.sleep(0.1)
             if EXIT_FLG:
                 return
             try:
