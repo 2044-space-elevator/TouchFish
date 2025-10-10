@@ -91,7 +91,7 @@ def time_str() -> str:
     return str(datetime.datetime.now())
 
 with open("./log.txt", "w+") as file:
-    file.write(f"[{time_str()}] TouchFish(Server) started successfully, {ip}: {portin}.\n")
+    file.write(f"[{time_str()}] TouchFish(Server) started successfully, {ip}:{portin}.\n")
 
 """
 conn:       链接操作口          [socket.socket()]
@@ -145,6 +145,7 @@ def send_all(msg : str):
 def add_accounts():
     global flush_txt
     while True:
+        time.sleep(0.1)
         if EXIT_FLG:
             return
         if (len(conn) > int(account_numbers)):
@@ -206,6 +207,7 @@ def receive_msg():
     global address
     global flush_txt
     while True:
+        time.sleep(0.1)
         if EXIT_FLG:
             return
         for j in requestion:
@@ -809,6 +811,7 @@ def admin_accept():
     global flush_txt
     global last_sent
     while True:
+        time.sleep(0.1)
         if EXIT_FLG:
             return
 
@@ -859,6 +862,7 @@ server = Server()
 
 def admin_deal():
     while True:
+        time.sleep(0.1)
         if EXIT_FLG:
             exit()
             break
