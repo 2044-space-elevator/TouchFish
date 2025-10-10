@@ -78,6 +78,7 @@ def send_msg(typ : str, arg : str):
 def receive_ret():
     global EXIT_FLG, result_msg
     while True:
+        time.sleep(0.1)
         if EXIT_FLG:
             exit()
             break
