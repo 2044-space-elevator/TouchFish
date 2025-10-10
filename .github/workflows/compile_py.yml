@@ -1,3 +1,5 @@
+# 贡献者注意： 
+# 下面的 hook-win10toast.py 迁移不要删
 name: Build and Push Python Binaries
 
 on:
