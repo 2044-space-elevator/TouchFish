@@ -789,7 +789,6 @@ class Server(cmd.Cmd):
         """
         退出当前程序
         """
-        self.do_flush("now")
         for i in range(0, len(conn)):
             try:
                 conn[i].send(bytes("[系统提示] 房主已关闭聊天室。\n", encoding="utf-8"))
@@ -982,13 +981,6 @@ def admin_deal():
                         admin_conns[i].send(bytes(json.dumps({"type" : "result", "message" : OP_MSG}), encoding="utf-8"))
                     except:
                         pass
-
-
-
-
-
-
-
 
 
 def complete_loop():
