@@ -128,6 +128,7 @@ THREAD_ADD_CMDLOOP = None
 THREAD_ADMIN_ACCEPT = None
 THREAD_ADMIN_DEAL = None
 
+to_be_flushed = False
 flush_interval = FLUSH_INTERVAL
 new_flush_interval = FLUSH_INTERVAL
 
@@ -185,6 +186,8 @@ def add_accounts():
                 conntmp.send(bytes("[系统提示] 本聊天室需要房主确认后加入，请等待房主同意。\n", encoding="utf-8"))
             except:
                 pass
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] <{len(requestion)}> User {addresstmp} requested an entry to the chatting room.\n"
             print(f"\n<{len(requestion)}> 用户 {addresstmp} 申请加入聊天室，请处理。\n{ip}:{portin}> ", end="")
             sys.stdout.flush()
@@ -198,6 +201,8 @@ def add_accounts():
 
         if_online[addresstmp[0]] = True
         msg_counts[addresstmp[0]] = 0 
+        if to_be_flushed == True:
+            time.sleep(0.2)
         flush_txt += f"[{time_str()}] User {addresstmp} has connected to server.\n"
         
 
@@ -257,6 +262,8 @@ def receive_msg():
             elif not ':' in data:
                 username_tmp = "UNKNOWN"
             username[address[i][0]] = username_tmp
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] User {address[i]} sent a massage: {data}"
 
             new_conn_lst = []
@@ -319,6 +326,8 @@ class Server(cmd.Cmd):
                     send_all(f"[系统提示] {operator} 封禁了用户 {ip}, 用户名 {username[ip]}\n")
                 except:
                     pass
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] {operator} banned the user(s) from IP(s) {', '.join(arg)}.\n"
         
         if arg[0] == 'words':
@@ -327,6 +336,8 @@ class Server(cmd.Cmd):
                 if SAVE_CONFIG:
                     dic_config_file["ban"]["words"].append(word)
                 ban_words_lst.append(word)
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] {operator} banned the word(s) {', '.join(arg)}.\n"
         
         if arg[0] == "length":
@@ -338,6 +349,8 @@ class Server(cmd.Cmd):
             if SAVE_CONFIG:
                 dic_config_file["ban"]["length"] = arg[1]
             ban_length = arg[1]
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] {operator} limited message length to: {ban_length}\n"
 
         dic_config_file["ban"]["ip"] = list(set(dic_config_file["ban"]["ip"]))
@@ -386,6 +399,8 @@ class Server(cmd.Cmd):
                     send_all(f"[系统提示] {operator} 解除封禁了 IP {ip}，用户名 {username[ip]}。\n")
                 except:
                     pass
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] {operator} unbanned the user(s) from IP(s) {', '.join(arg)}.\n"
         
         if arg[0] == 'words':
@@ -400,6 +415,8 @@ class Server(cmd.Cmd):
                     ban_words_lst.remove(word)
                 except:
                     pass
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] {operator} unbanned the word(s) {', '.join(arg)}.\n"
 
         if SAVE_CONFIG:
@@ -450,12 +467,17 @@ class Server(cmd.Cmd):
                 AUTO_REMOVE_OFFLINE = True
             if len(arg) == 3:
                 dic_config_file["AUTO_REMOVE_OFFLINE"] = AUTO_REMOVE_OFFLINE
-        
+        if to_be_flushed == True:
+            time.sleep(0.2)
         flush_txt += f'[{time_str()}] {operator} set {arg[0]} as {arg[1]}'
         if len(arg) == 3:
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f" and saved it in the configuration."
             with open(CONFIG_PATH, "w+") as file:
                 json.dump(dic_config_file, file)
+        if to_be_flushed == True:
+            time.sleep(0.2)
         flush_txt += '\n'
         return ""
 
@@ -517,6 +539,8 @@ class Server(cmd.Cmd):
         OP_MSG = ""
         global flush_txt
         try:
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] <{rid}> User {requestion[rid][1]} was rejected to enter in the chatting room.\n"
             OP_MSG += f"{operator}拒绝第 {rid} 号请求（用户 {requestion[rid][1]}。\n"
             requestion[rid][0].send(bytes(f"[系统提示] {operator} 被拒绝加入聊天室\n", encoding="utf-8"))
@@ -550,6 +574,8 @@ class Server(cmd.Cmd):
             conn.append(requestion[rid][0])
             address.append(requestion[rid][1])
             requestion[rid][0].send(bytes(f"[系统提示] {operator} 已准许您加入聊天室\n", encoding="utf-8"))
+            if to_be_flushed == True:
+                time.sleep(0.2)
             flush_txt += f"[{time_str()}] <{rid}> User {requestion[rid][1]} was accepted to enter the chatting room.\n"
             OP_MSG += f"{operator}准许了第 {rid} 号请求，用户 {requestion[rid][1]} 进入聊天室。\n"
             requestion[rid] = None
@@ -613,6 +639,8 @@ class Server(cmd.Cmd):
     def broadcast(self, arg, operator):
         OP_MSG = ""
         global flush_txt
+        if to_be_flushed == True:
+            time.sleep(0.2)
         flush_txt += f"[{time_str()}] {operator} broadcasted msg '{arg}'\n"
         for j in range(len(conn)):
             try:
@@ -734,9 +762,12 @@ class Server(cmd.Cmd):
                 return "[Error] 参数错误\n"
             if flush_interval != 0:
                 return "[Error] 目前处于自动刷新模式，不能手动刷新\n"
+            to_be_flushed = True
+            time.sleep(0.1)
             with open("./log.txt", "a+", encoding="utf-8") as file:
                 file.write(flush_txt)
             flush_txt = ""
+            to_be_flushed = False
             return ""
         if arg[0] == "manual":
             new_flush_interval = 0
@@ -917,7 +948,9 @@ def admin_accept():
         
         if not addresstmp[0] in admins:
             continue
-        
+
+        if to_be_flushed == True:
+            time.sleep(0.2)
         flush_txt += f"[{time_str()}] Administrator {addresstmp} entered.\n"
         print(f"\n管理员 {addresstmp} 进入管理平台。\n{ip}:{portin}> ", end="")
         conntmp.setblocking(0)
@@ -1006,15 +1039,21 @@ def complete_loop():
                 time.sleep(1)
             else:
                 global flush_txt
+                to_be_flushed = True
+                time.sleep(0.1)
                 with open("./log.txt", "a+", encoding="utf-8") as file:
                     file.write(flush_txt)
                 flush_txt = ""
+                to_be_flushed = False
                 time.sleep(flush_interval)
         
         flush_interval = new_flush_interval
+        to_be_flushed = True
+        time.sleep(0.1)
         with open("./log.txt", "a+", encoding="utf-8") as file:
             file.write(flush_txt)
         flush_txt = ""
+        to_be_flushed = False
         if EXIT_FLG:
             return
         sys.stdin = open(0, 'r', encoding='utf-8', buffering=1)
