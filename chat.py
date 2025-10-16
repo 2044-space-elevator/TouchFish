@@ -23,10 +23,17 @@ try:
     with open(CONFIG_PATH, "r+") as f:
         dic_tmp = json.load(f)
         ban_ip, ban_words, ban_length = dic_tmp['ban']['ip'], dic_tmp['ban']['words'], dic_tmp['ban']['length']
-        status_enter_after_promis_tmp = dic_tmp['ENTER_AFTER_PROMISE']
+        status_enter_after_promise_tmp = dic_tmp['ENTER_AFTER_PROMISE']
         status_show_enter_message_tmp = dic_tmp['SHOW_ENTER_MESSAGE']
-        status_auto_remove_offline = dic_tmp['AUTO_REMOVE_OFFLINE']
-        if type(ban_ip) == type(list()) and type(ban_words) == type(list()) and type(ban_length) == type(int()) and type(status_enter_after_promis_tmp) == type(bool()) and type(status_show_enter_message_tmp) == type(bool()) and type(status_auto_remove_offline) == type(bool()):
+        status_auto_remove_offline_tmp = dic_tmp['AUTO_REMOVE_OFFLINE']
+        flush_interval_tmp = dic_tmp['FLUSH_INTERVAL']
+        if type(ban_ip) == type(list()) and \
+           type(ban_words) == type(list()) and \
+           type(ban_length) == type(int()) and \
+           type(status_enter_after_promise_tmp) == type(bool()) and \
+           type(status_show_enter_message_tmp) == type(bool()) and \
+           type(status_auto_remove_offline_tmp) == type(bool()) and \
+           type(flush_interval_tmp) == type(int()):
             pass
         
         else:
@@ -46,11 +53,12 @@ except:
             "ban" : {
                 "words" : [],
                 "ip" : [],
-                "length": 2147483647
+                "length" : 2147483647
             },
             "ENTER_AFTER_PROMISE" : False,
             "SHOW_ENTER_MESSAGE" : False,
-            "AUTO_REMOVE_OFFLINE" : False
+            "AUTO_REMOVE_OFFLINE" : False,
+            "FLUSH_INTERVAL" : 60
         }, f)
 
 if len(sys.argv) == 4:
@@ -111,13 +119,17 @@ ban_ip_lst = dic_config_file["ban"]["ip"]
 ban_words_lst = dic_config_file["ban"]["words"]
 ban_length = dic_config_file["ban"]["length"]
 ENTER_AFTER_PROMISE = dic_config_file["ENTER_AFTER_PROMISE"]
+SHOW_ENTER_MESSAGE = dic_config_file["SHOW_ENTER_MESSAGE"]
 AUTO_REMOVE_OFFLINE = dic_config_file["AUTO_REMOVE_OFFLINE"]
+FLUSH_INTERVAL = dic_config_file["FLUSH_INTERVAL"]
 THREAD_RECEIVE_MESSAGE = None
 THREAD_ADD_ACCOUNTS = None
 THREAD_ADD_CMDLOOP = None
 THREAD_ADMIN_ACCEPT = None
 THREAD_ADMIN_DEAL = None
 
+flush_interval = FLUSH_INTERVAL
+new_flush_interval = FLUSH_INTERVAL
 
 ENTER_HINT = ""
 with open("hint.txt", "a+", encoding="utf-8") as file:
@@ -271,7 +283,6 @@ class Server(cmd.Cmd):
     intro = f"""欢迎来到 TouchFish！当前版本：{VERSION}，最新版本：{NEWEST_VERSION}
 如果想知道有什么命令，请输入 help
 具体的使用指南，参见 help <你想用的命令>。详细的使用指南，见 wiki：https://github.com/2044-space-elevator/TouchFish/wiki/How-to-use-chat
-注意：消息无法实时更新，需要输入 flush 命令将缓冲区输出到 ./log.txt。
 如果你不用 admin 且没有 admin 进入管理平台，不要开启 admin 模式，否则无法正常退出。
 永久配置文件位于目录下的 ./config.json"""
     def __init__(self):
@@ -700,20 +711,85 @@ class Server(cmd.Cmd):
         OP_MSG = self.search(arg)
         print(OP_MSG, end="")
 
+    def flush(self, arg):
+        global flush_interval
+        global new_flush_interval
+        global flush_txt
+        attributes = ["now", "auto", "manual"]
+        arg = arg.split(' ')
+        if (arg[0] not in attributes):
+            return "[Error] 参数错误\n"
+
+        SAVE_CONFIG = False
+        if arg[0] == 'forever':
+            SAVE_CONFIG = True
+            arg = arg[1:]
+
+            for ip in arg:
+                if SAVE_CONFIG:
+                    dic_config_file["ban"]["ip"].append(ip)
+
+        if arg[0] == "now":
+            if len(arg) != 1:
+                return "[Error] 参数错误\n"
+            if flush_interval != 0:
+                return "[Error] 目前处于自动刷新模式，不能手动刷新\n"
+            with open("./log.txt", "a+", encoding="utf-8") as file:
+                file.write(flush_txt)
+            flush_txt = ""
+            return ""
+        if arg[0] == "manual":
+            new_flush_interval = 0
+            if len(arg) == 2 and arg[1] == "forever":
+                SAVE_CONFIG = True
+                dic_config_file["FLUSH_INTERVAL"] = 0
+            print("正在切换到手动刷新模式...")
+            if SAVE_CONFIG:
+                with open(CONFIG_PATH, "w+") as f:
+                    json.dump(dic_config_file, f)
+                print("此改动已经保存到配置文件，下一次启动本目录的 server 时能使用。")
+            print("调整自动刷新配置需要命令行重新启动，这一过程可能需要 1 分钟甚至更长，请等待...")
+            return "[Restart Required]"
+        if arg[0] == "auto":
+            if len(arg) != 2 and len(arg) != 3:
+                return "[Error] 参数错误\n"
+            try:
+                arg[1] = int(arg[1])
+                if arg[1] <= 0:
+                    raise
+            except:
+                return "[Error] <*interval> 必须是正整数\n"
+            new_flush_interval = int(arg[1])
+            if len(arg) == 3 and arg[2] == "forever":
+                SAVE_CONFIG = True
+                dic_config_file["FLUSH_INTERVAL"] = int(arg[1])
+            print(f"正在切换到自动刷新模式，每 {int(arg[1])} 秒刷新一次...")
+            if SAVE_CONFIG:
+                with open(CONFIG_PATH, "w+") as f:
+                    json.dump(dic_config_file, f)
+                print("此改动已经保存到配置文件，下一次启动本目录的 server 时能使用。")
+            print("调整自动刷新配置需要命令行重新启动，这一过程可能需要 1 分钟甚至更长，请等待...")
+            return "[Restart Required]"
+    
     def do_flush(self, arg):
         """
-        输出缓冲区内容
+        使用方法（~ 表示 flush）：
+            ~ now                   立刻刷新缓冲区，将消息保存到 ./log.txt（仅限手动模式）
+            ~ auto <*interval>      切换到自动刷新模式，每 interval 秒刷新一次
+            ~ manual                切换到手动刷新模式
+        你可以在命令后面加上 "forever"，表示将设置保存到配置文件。下一次启动本目录的 server 时能使用。
+        （小声：但你显然不能在 ~ now 后面加上 "forever"）
         """
-        global flush_txt
-        with open("./log.txt", "a+", encoding="utf-8") as file:
-            file.write(flush_txt)
-        flush_txt = ""
+        OP_MSG = self.flush(arg)
+        if OP_MSG == "[Restart Required]":
+            exit()
+        print(OP_MSG, end="")
     
     def do_exit(self, arg):
         """
         退出当前程序
         """
-        self.do_flush(...)
+        self.do_flush("now")
         for i in range(0, len(conn)):
             try:
                 conn[i].send(bytes("[系统提示] 房主已关闭聊天室。\n", encoding="utf-8"))
@@ -894,15 +970,12 @@ def admin_deal():
 
                 ALLOW_COMMAND = ["ban", "accept", "broadcast", "enable", "flush", "reject", "search", "set", "req"]
                 if msg["type"] in ALLOW_COMMAND:
-                    if msg["type"] != "flush":
-                        func = getattr(server, msg["type"])
-                    if msg["type"] == "search" or msg["type"] == "req":
+                    func = getattr(server, msg["type"])
+                    if msg["type"] == "search" or msg["type"] == "req" or msg["type"] == "flush":
                         OP_MSG = func(msg["message"])
                     elif msg["type"] == "accept" or msg["type"] == "reject":
                         func = getattr(server, msg["type"] + "_multi")
                         OP_MSG = func(msg["message"], admin_name[admin_address[i]])
-                    elif msg["type"] == "flush":
-                        server.do_flush(...)
                     else:
                         OP_MSG = func(msg["message"], admin_name[admin_address[i]])
                     try:
@@ -914,14 +987,47 @@ def admin_deal():
 
 
 
-THREAD_ADD_CMDLOOP = threading.Thread(target=server.cmdloop)
-THREAD_RECEIVE_MESSAGE = threading.Thread(target=receive_msg)
-THREAD_ADD_ACCOUNTS = threading.Thread(target=add_accounts)
-THREAD_ADMIN_ACCEPT = threading.Thread(target=admin_accept)
-THREAD_ADMIN_DEAL = threading.Thread(target=admin_deal)
 
-THREAD_ADD_CMDLOOP.start()
-THREAD_RECEIVE_MESSAGE.start()
-THREAD_ADD_ACCOUNTS.start()
-THREAD_ADMIN_ACCEPT.start()
-THREAD_ADMIN_DEAL.start()
+
+
+
+def complete_loop():
+    global flush_interval
+    global new_flush_interval
+
+    THREAD_RECEIVE_MESSAGE = threading.Thread(target=receive_msg)
+    THREAD_ADD_ACCOUNTS = threading.Thread(target=add_accounts)
+    THREAD_ADMIN_ACCEPT = threading.Thread(target=admin_accept)
+    THREAD_ADMIN_DEAL = threading.Thread(target=admin_deal)
+    
+    THREAD_RECEIVE_MESSAGE.start()
+    THREAD_ADD_ACCOUNTS.start()
+    THREAD_ADMIN_ACCEPT.start()
+    THREAD_ADMIN_DEAL.start()
+
+    while True:
+        THREAD_ADD_CMDLOOP = threading.Thread(target=server.cmdloop)
+        THREAD_ADD_CMDLOOP.start()
+        time.sleep(1)
+        while THREAD_ADD_CMDLOOP.is_alive():
+            if flush_interval == 0:
+                time.sleep(1)
+            else:
+                global flush_txt
+                with open("./log.txt", "a+", encoding="utf-8") as file:
+                    file.write(flush_txt)
+                flush_txt = ""
+                time.sleep(flush_interval)
+        
+        flush_interval = new_flush_interval
+        with open("./log.txt", "a+", encoding="utf-8") as file:
+            file.write(flush_txt)
+        flush_txt = ""
+        if EXIT_FLG:
+            return
+        sys.stdin = open(0, 'r', encoding='utf-8', buffering=1)
+        sys.stdout = open(1, 'w', encoding='utf-8', buffering=1)
+        sys.stderr = open(2, 'w', encoding='utf-8', buffering=1)
+
+THREAD_COMPLETE_LOOP = threading.Thread(target=complete_loop)
+THREAD_COMPLETE_LOOP.start()
