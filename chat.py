@@ -647,7 +647,7 @@ class Server(cmd.Cmd):
     def broadcast(self, arg, operator):
         OP_MSG = ""
         global flush_queue
-        flush_queue.put(f"[{time_str()}] {operator} broadcasted msg: '{arg}'\n")
+        flush_queue.put(f"[{time_str()}] {operator} broadcast message: '{arg}'\n")
         for j in range(len(conn)):
             try:
                 conn[j].send(bytes(f"[{operator}广播] " + arg + '\n', encoding="utf-8"))
