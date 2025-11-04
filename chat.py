@@ -14,6 +14,7 @@ import os
 
 import tabulate
 import requests
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 CONFIG_PATH = "config.json"
 
@@ -99,13 +100,18 @@ with open("./log.txt", "w+") as file:
     file.write(f"[{time_str()}] TouchFish(Server) started successfully, {ip}:{portin}.\n")
 
 """
-conn:         链接操作口          [socket.socket()]
-address:      IP                 [(str, int)]
-username:     用户名、IP 对应     {str : str}
-the_requests: 申请加入队列        [(socket.socket(), (str, int)) or None]
+conn:               链接操作口          [socket.socket()]
+address:            IP                 [(str, int)]
+username:           用户名、IP 对应     {str : str}
+the_requests:       申请加入队列        [(socket.socket(), (str, int)) or None]
+waiting_conn:       正在连接的用户      socket.socket()
+waiting_address:    正在连接的 IP       (str, int)
 """
 conn = []
 address = []
+waiting_conn = None
+waiting_address = None
+malicious = False
 username = dict()
 if_online = dict()
 the_requests = []
@@ -135,9 +141,21 @@ if ENTER_HINT and ('\n' not in ENTER_HINT):
 
 print("您当前的进入提示是（注意使用的是 utf-8）：" + ENTER_HINT)
 SHOW_ENTER_MESSAGE = dic_config_file["SHOW_ENTER_MESSAGE"]
-EXIT_FLG = False 
+EXIT_FLG = False
 flush_queue = queue.Queue()
 file_processing = False
+
+WEBPAGE_CONTENT = """
+HTTP/1.1 405 Method Not Allowed
+Content-Type: text/html; charset=utf-8
+Connection: close
+
+Seemingly you are accessing TouchFish Server via something like Web browsers.
+Such accesses are HAZARDOUS to the server and will result in a BAN for not correcting this fault.
+To use the TouchFish chatroom service correctly, you might need a dedicated TouchFish Client.
+For more information, please visit the official Github repository of this project:
+https://github.com/2044-space-elevator/TouchFish
+"""[1:]
 
 def send_all(msg : str):
     global conn
@@ -150,62 +168,84 @@ def send_all(msg : str):
 
 def add_accounts():
     global flush_queue
+    global waiting_conn
+    global waiting_address
+    global malicious
+    cooldown = -1 # -1 代表前一个加入请求处理完成
+    conntmp = None
+    addresstmp = None
     while True:
         time.sleep(0.1)
         if EXIT_FLG:
             return
-        if (len(conn) > int(account_numbers)):
-            print("注意：连接数已满")
-            sys.stdout.flush()
-            break
-        conntmp = None
-        addresstmp = None
-        try:
-            conntmp, addresstmp = s.accept()
-        except:
+        if cooldown > 0:
+            cooldown -= 1
             continue
-        
-        try:
-            conntmp.send(bytes("[Version] " + VERSION + "\n", encoding="utf-8"))
-            if ENTER_HINT:
-                conntmp.send(bytes("[房主提示] " + ENTER_HINT, encoding="utf-8"))
-        except:
-            pass
-        
-        if addresstmp[0] in ban_ip_lst:
-            continue
-        
-        if ENTER_AFTER_PROMISE:
+        if cooldown == -1:
+            if (len(conn) > int(account_numbers)):
+                print("注意：连接数已满")
+                sys.stdout.flush()
+                break
+            conntmp = None
+            addresstmp = None
             try:
-                conntmp.send(bytes("[系统提示] 本聊天室需要房主确认后加入，请等待房主同意。\n", encoding="utf-8"))
+                conntmp, addresstmp = s.accept()
+                waiting_conn, waiting_address = conntmp, addresstmp
+            except:
+                continue
+            
+            if addresstmp[0] in ban_ip_lst:
+                flush_queue.put(f"[{time_str()}] User {addresstmp} (BANNED previously) attempted to connect to server and has been rejected automatically.\n")
+                conntmp.close()
+                continue
+
+            malicious = False
+            cooldown = 10 # 冷却 10 个 tick，由前面的 time.sleep(0.1) 可知每个 tick 为 0.1 秒，共计 1 秒
+            flush_queue.put(f"[{time_str()}] User {addresstmp} attempted to connect to server.\n")
+            continue
+        else:
+            cooldown = -1
+            if malicious:
+                flush_queue.put(f"[{time_str()}] User {addresstmp} seemed to have connected incorrectly and has been kicked automatically.\n")
+                continue
+            
+            flush_queue.put(f"[{time_str()}] User {addresstmp} has connected to server.\n")
+            try:
+                conntmp.send(bytes("[Version] " + VERSION + "\n", encoding="utf-8"))
+                if ENTER_HINT:
+                    conntmp.send(bytes("[房主提示] " + ENTER_HINT, encoding="utf-8"))
             except:
                 pass
-            flush_queue.put(f"[{time_str()}] <{len(the_requests)}> User {addresstmp} requested an entry to the chatting room.\n")
-            print(f"\n<{len(the_requests)}> 用户 {addresstmp} 申请加入聊天室，请处理。\n{ip}:{portin}> ", end="")
-            sys.stdout.flush()
-            the_requests.append((conntmp, addresstmp))
-            continue
-        
-        if SHOW_ENTER_MESSAGE:
-            print(f"\n用户 {addresstmp} 加入聊天室！\n{ip}:{portin}> ", end="")
-            sys.stdout.flush()
-        
-        if_online[addresstmp[0]] = True
-        msg_counts[addresstmp[0]] = 0 
-        flush_queue.put(f"[{time_str()}] User {addresstmp} has connected to server.\n")
-        
-        if platform.system() != "Windows":
-            conntmp.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 180 * 60)
-            conntmp.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 30)
-        else: 
-            conntmp.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
-            conntmp.ioctl(socket.SIO_KEEPALIVE_VALS, (
-                1, 180 * 1000, 30 * 1000
-            ))
-        conntmp.setblocking(False)
-        conn.append(conntmp)
-        address.append(addresstmp)
-        username[addresstmp[0]] = "UNKNOWN"
+            
+            if ENTER_AFTER_PROMISE:
+                try:
+                    conntmp.send(bytes("[系统提示] 本聊天室需要房主确认后加入，请等待房主同意。\n", encoding="utf-8"))
+                except:
+                    pass
+                flush_queue.put(f"[{time_str()}] <{len(the_requests)}> User {addresstmp} requested an entry to the chatting room.\n")
+                print(f"\n<{len(the_requests)}> 用户 {addresstmp} 申请加入聊天室，请处理。\n{ip}:{portin}> ", end="")
+                sys.stdout.flush()
+                the_requests.append((conntmp, addresstmp))
+                continue
+            
+            if SHOW_ENTER_MESSAGE:
+                print(f"\n用户 {addresstmp} 加入聊天室！\n{ip}:{portin}> ", end="")
+                sys.stdout.flush()
+            
+            if_online[addresstmp[0]] = True
+            msg_counts[addresstmp[0]] = 0
+            
+            if platform.system() != "Windows":
+                conntmp.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 180 * 60)
+                conntmp.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 30)
+            else:
+                conntmp.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
+                conntmp.ioctl(socket.SIO_KEEPALIVE_VALS, (
+                    1, 180 * 1000, 30 * 1000
+                ))
+            conn.append(conntmp)
+            address.append(addresstmp)
+            username[addresstmp[0]] = "UNKNOWN"
 
 def format_msg(data, username_tmp) -> str:
     output = ""
@@ -231,6 +271,9 @@ def receive_msg():
     global address
     global flush_queue
     global file_processing
+    global waiting_conn
+    global waiting_address
+    global malicious
     while True:
         if not file_processing:
             time.sleep(0.1)
@@ -243,7 +286,18 @@ def receive_msg():
                 tmp = j[0].recv(1024).decode('utf-8')
             except:
                 pass
+            
+        try:
+            data = waiting_conn.recv(1024).decode('utf-8')
+        except:
+            data = ""
         
+        if "HTTP/" in data:
+            waiting_conn.send(bytes(WEBPAGE_CONTENT, encoding="utf-8"))
+            flush_queue.put(f"[{time_str()}] User {waiting_address} is malicious!!!")
+            malicious = True
+            waiting_conn.close()
+            
         for i in range(len(conn)):
             data = None
             try:
@@ -312,7 +366,7 @@ def receive_msg():
             if AUTO_REMOVE_OFFLINE:
                 conn = new_conn_lst
                 address = new_add_lst
- 
+
 admin_socket = None
 class Server(cmd.Cmd):
     prompt = f"{ip}:{portin}> "
@@ -576,7 +630,7 @@ class Server(cmd.Cmd):
             if platform.system() != "Windows":
                 the_requests[rid][0].setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 180 * 60)
                 the_requests[rid][0].setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 30)
-            else: 
+            else:
                 the_requests[rid][0].setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
                 the_requests[rid][0].ioctl(socket.SIO_KEEPALIVE_VALS, (
                     1, 180 * 1000, 30 * 1000
@@ -694,7 +748,7 @@ class Server(cmd.Cmd):
                 ip = i[0]
                 if if_online[ip]:
                     search_lst.append(ip)
-            search_lst.sort(key=lambda x : msg_counts[x]) 
+            search_lst.sort(key=lambda x : msg_counts[x])
             search_lst.reverse()
         
         if arg[0] == 'offline':
@@ -742,7 +796,7 @@ class Server(cmd.Cmd):
             ~ offline               搜索所有离线的用户的信息
             ~ banned                查询所有被 ban 的用户的信息   
             ~ send_times <*times>   搜索所有发送信息次数大于等于 times 的用户的信息（按发送次数从大到小输出）
-        """ 
+        """
         OP_MSG = self.search(arg)
         print(OP_MSG, end="")
     
@@ -885,7 +939,7 @@ def admin_accept():
         if platform.system() != "Windows":
             conntmp.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 180 * 60)
             conntmp.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 30)
-        else: 
+        else:
             conntmp.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
             conntmp.ioctl(socket.SIO_KEEPALIVE_VALS, (
                 1, 180 * 1000, 30 * 1000
@@ -978,4 +1032,4 @@ THREAD_RECEIVE_MESSAGE.start()
 THREAD_ADD_ACCOUNTS.start()
 THREAD_ADMIN_ACCEPT.start()
 THREAD_ADMIN_DEAL.start()
-THREAD_FLUSH_LOOP.start()  
+THREAD_FLUSH_LOOP.start()
