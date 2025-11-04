@@ -150,8 +150,14 @@ HTTP/1.1 405 Method Not Allowed
 Content-Type: text/html; charset=utf-8
 Connection: close
 
-Seemingly you are accessing TouchFish Server via something like Web browsers.
-Such accesses are HAZARDOUS to the server and will result in a BAN for not correcting this fault.
+您似乎正在使用浏览器或类似方法向 TouchFish Server 发送请求。
+此类请求可能会危害 TouchFish Server 的正常运行，因此请不要继续使用此访问方法，否则我们可能会封禁您的 IP。
+正确的访问方法是，使用 TouchFish 生态下任意兼容的 TouchFish Client 登录 TouchFish Server。
+欲了解更多有关 TouchFish 聊天室的信息，请访问 TouchFish 聊天室的官方 Github 仓库：
+https://github.com/2044-space-elevator/TouchFish
+
+Seemingly you are sending requests to TouchFish Server via something like Web browsers.
+Such requests are HAZARDOUS to the server and will result in a BAN if you insist on this access method.
 To use the TouchFish chatroom service correctly, you might need a dedicated TouchFish Client.
 For more information, please visit the official Github repository of this project:
 https://github.com/2044-space-elevator/TouchFish
@@ -294,7 +300,7 @@ def receive_msg():
         
         if "HTTP/" in data:
             waiting_conn.send(bytes(WEBPAGE_CONTENT, encoding="utf-8"))
-            flush_queue.put(f"[{time_str()}] User {waiting_address} is malicious!!!")
+            flush_queue.put(f"[{time_str()}] User {waiting_address} is trying to connect incorrectly!!!")
             malicious = True
             waiting_conn.close()
             
