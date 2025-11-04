@@ -298,11 +298,14 @@ def receive_msg():
             data = ""
         
         if "HTTP/" in data:
-            waiting_conn.send(bytes(WEBPAGE_CONTENT, encoding="utf-8"))
+            try:
+                waiting_conn.send(bytes(WEBPAGE_CONTENT, encoding="utf-8"))
+                waiting_conn.close()
+            except:
+                pass
             flush_queue.put(f"[{time_str()}] User {waiting_address} is trying to connect incorrectly!!!")
             malicious = True
-            waiting_conn.close()
-            
+        
         for i in range(len(conn)):
             data = None
             try:
