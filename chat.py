@@ -99,9 +99,9 @@ with open("./log.txt", "w+") as file:
     file.write(f"[{time_str()}] TouchFish(Server) started successfully, {ip}:{portin}.\n")
 
 """
-conn:       链接操作口          [socket.socket()]
-address:    IP                 [(str, int)]
-username:   用户名、IP 对应     {str : str}
+conn:         链接操作口          [socket.socket()]
+address:      IP                 [(str, int)]
+username:     用户名、IP 对应     {str : str}
 the_requests: 申请加入队列        [(socket.socket(), (str, int)) or None]
 """
 conn = []
@@ -179,7 +179,7 @@ def add_accounts():
                 conntmp.send(bytes("[系统提示] 本聊天室需要房主确认后加入，请等待房主同意。\n", encoding="utf-8"))
             except:
                 pass
-            flush_queue.put(f"[{time_str()}] <{len(the_requests)}> User {addresstmp} the_requestsed an entry to the chatting room.\n")
+            flush_queue.put(f"[{time_str()}] <{len(the_requests)}> User {addresstmp} requested an entry to the chatting room.\n")
             print(f"\n<{len(the_requests)}> 用户 {addresstmp} 申请加入聊天室，请处理。\n{ip}:{portin}> ", end="")
             sys.stdout.flush()
             the_requests.append((conntmp, addresstmp))
