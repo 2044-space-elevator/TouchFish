@@ -87,7 +87,7 @@ class ChatClient:
         connect_btn.grid(row=3, columnspan=2, pady=10)
 
         # 提示
-        tk.Label(frame, text="提示: Ctrl+Enter 发送消息").grid(row=4, columnspan=2)
+        tk.Label(frame, text="提示 1：你可以使用快捷键 Ctrl+Enter 发送消息").grid(row=4, columnspan=2)
 
         try:
             NEWEST_VERSION = requests.get("https://www.bopid.cn/chat/newest_version_client.html").content.decode()
