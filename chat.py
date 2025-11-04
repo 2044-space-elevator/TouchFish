@@ -14,7 +14,6 @@ import os
 
 import tabulate
 import requests
-from http.server import HTTPServer, BaseHTTPRequestHandler
 
 CONFIG_PATH = "config.json"
 
@@ -1002,7 +1001,6 @@ def admin_deal():
                         admin_conns[i].send(bytes(json.dumps({"type" : "result", "message" : OP_MSG}), encoding="utf-8"))
                     except:
                         pass
-
 
 def flush_loop():
     global EXIT_FLG
