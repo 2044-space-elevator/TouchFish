@@ -166,6 +166,7 @@ def add_accounts():
             continue
         
         try:
+            conntmp.send(bytes("[Version] " + VERSION + "\n", encoding="utf-8"))
             if ENTER_HINT:
                 conntmp.send(bytes("[房主提示] " + ENTER_HINT, encoding="utf-8"))
         except:
