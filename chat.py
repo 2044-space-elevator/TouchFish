@@ -551,7 +551,7 @@ class Server(cmd.Cmd):
         OP_MSG = ""
         global flush_queue
         try:
-            flush_queue.put(f"[{time_str()}] <{rid}> User {the_requests[rid][1]} was rejected to enter in the chatting room.\n")
+            flush_queue.put(f"[{time_str()}] <{rid}> User {the_requests[rid][1]} was rejected to enter the chatting room.\n")
             OP_MSG += f"{operator} 拒绝第 {rid} 号请求（用户 {the_requests[rid][1]}。\n"
             the_requests[rid][0].send(bytes(f"[系统提示] {operator} 被拒绝加入聊天室\n", encoding="utf-8"))
             the_requests[rid] = None
