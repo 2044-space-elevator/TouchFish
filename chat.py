@@ -110,7 +110,7 @@ conn = []
 address = []
 waiting_conn = None
 waiting_address = None
-malicious = False
+incorrect_connection = False
 username = dict()
 if_online = dict()
 the_requests = []
@@ -175,7 +175,7 @@ def add_accounts():
     global flush_queue
     global waiting_conn
     global waiting_address
-    global malicious
+    global incorrect_connection
     cooldown = -1 # -1 代表前一个加入请求处理完成
     conntmp = None
     addresstmp = None
@@ -204,16 +204,19 @@ def add_accounts():
                 conntmp.close()
                 continue
 
-            malicious = False
             cooldown = 10 # 冷却 10 个 tick，由前面的 time.sleep(0.1) 可知每个 tick 为 0.1 秒，共计 1 秒
             flush_queue.put(f"[{time_str()}] User {addresstmp} attempted to connect to server.\n")
             continue
         else:
             cooldown = -1
-            if malicious:
+            waiting_conn = None
+            waiting_address = None
+            if incorrect_connection:
                 flush_queue.put(f"[{time_str()}] User {addresstmp} seemed to have connected incorrectly and has been kicked automatically.\n")
+                incorrect_connection = False
                 continue
-            
+
+            incorrect_connection = False
             flush_queue.put(f"[{time_str()}] User {addresstmp} has connected to server.\n")
             try:
                 conntmp.send(bytes("[Version] " + VERSION + "\n", encoding="utf-8"))
@@ -278,7 +281,7 @@ def receive_msg():
     global file_processing
     global waiting_conn
     global waiting_address
-    global malicious
+    global incorrect_connection
     while True:
         if not file_processing:
             time.sleep(0.1)
@@ -304,7 +307,7 @@ def receive_msg():
             except:
                 pass
             flush_queue.put(f"[{time_str()}] User {waiting_address} is trying to connect incorrectly!!!")
-            malicious = True
+            incorrect_connection = True
         
         for i in range(len(conn)):
             data = None
