@@ -294,7 +294,7 @@ def receive_msg():
                 tmp = j[0].recv(1024).decode('utf-8')
             except:
                 pass
-            
+        
         try:
             data = waiting_conn.recv(1024).decode('utf-8')
         except:
@@ -343,9 +343,10 @@ def receive_msg():
                     flush_queue.put("-" * 100)
                 file_processing = True
                 output = data
+                flush_queue.put(output)
             else:
                 output = format_msg(data, username_tmp)
-            flush_queue.put(f"[{time_str()}] User {address[i]} sent a message:" + output)
+                flush_queue.put(f"[{time_str()}] User {address[i]} sent a message:" + output)
             if "[FILE_END]" in data:
                 flush_queue.put("-" * 100)
                 flush_queue.put(f"[{time_str()}] Transfer finished.")
@@ -670,7 +671,7 @@ class Server(cmd.Cmd):
             except:
                 OP_MSG += "[Error] 参数错误或请求已被处理\n"
                 return OP_MSG
-            
+        
         for v in arg:
             OP_MSG += self.accept(int(v), operator)
         
@@ -729,7 +730,7 @@ class Server(cmd.Cmd):
         """
         使用方法（~ 表示 broadcast)：
             ~ <msg> 向全体成员广播信息 msg
-        """    
+        """
         OP_MSG = self.broadcast(arg, "房主")
         print(OP_MSG, end="")
     
@@ -805,7 +806,7 @@ class Server(cmd.Cmd):
             ~ user <*user>          搜索所有 username 为 *user 的用户信息（支持正则）
             ~ online                搜索所有在线的用户的信息
             ~ offline               搜索所有离线的用户的信息
-            ~ banned                查询所有被 ban 的用户的信息   
+            ~ banned                查询所有被 ban 的用户的信息
             ~ send_times <*times>   搜索所有发送信息次数大于等于 times 的用户的信息（按发送次数从大到小输出）
         """
         OP_MSG = self.search(arg)
