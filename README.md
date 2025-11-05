@@ -38,11 +38,13 @@
 |Astra|暂无|@ILoveScratch2|[link](https://github.com/ILoveScratch2/TouchFish-Astra)|是|Dust|TouchFish 目前可以说是最好的发行版之一，UI 媲美 TFUR，有 Markdown 渲染和 LaTeX 支持，以及全平台兼容性，但是目前是开发版本，且不支持多行|All|
 |More(Lite)|More|@xx2860|[link](https://gitee.com/xx2870/touchfish_more)|是|Python|有更好的性能，更快的下载速度（算是镜像站）|Windows, MacOS, Linux|
 
-> [!WARNING] MacOS 用户注意
+## MacOS 用户注意
+> [!WARNING]
 > 该软件需要打开任意来源以正常运行。
 > 系统设置 – 安全性与隐私 – 安全性 – 允许以下来源的应用程序 – 点击 App Store 与已知开发者选项，然后选择 任何来源。
 
-> [!WARNING] Linux 用户注意
+## Linux 用户注意
+> [!WARNING]
 > 本软件仅支持在具有 UI 界面的 Linux 发行版中运行。
 > 如果需要在勿 UI 界面的 Linux 发行版中运行，请运行 [CLI 版本](clientcli.py)。
 
