@@ -30,22 +30,21 @@
 |   版本名称   |  通用简称  | 主要作者 |  链接    |   与 LTS 是否兼容   |   使用语言 |  备注 | 兼容平台 |
 |:---:|:---:|:---:|:---:|:-----:|:----:|:---:|:-----:|
 |LTS|TF|@2044-space-elevator|[link](#)|是|Python|根版本，见上面一行|Windows, MacOS, Linux|
+|CLI|cli|@JohnChiao75|[link](#)|是|Python|随 LTS 发行，这里给出的是实际作者|Windows, MacOS, Linux|
 |UI Remake|TFUR|@pztsdy|[link](https://github.com/pztsdy/touchfish_ui_remake)|是|Node.JS|拥有现代化 UI，支持 Markdown，代码高亮，部分 LaTeX|Windows, MacOS(无对应二进制预编译包), Linux(无对应二进制预编译包)|
 |Plus|Plus|@ayf2192538031|[link](https://github.com/2044-space-elevator/TouchFishPlus)|否|Python|拥有更多功能，但不同 Plus 版本不兼容。|Windows, MacOS, Linux|
 |Pro|Pro|@BoXueDuoCai|[link](https://github.com/PigeonTechGroup/TouchFishPro)|是|Python|支持 Markdown，有能凑合着看的 LaTeX，用户高亮|Windows, MacOS, Linux|
-|For Android|mobile|@pztsdy|[link](https://www.piaoztsdy.cn/TouchFish-for-Android/)|是|Kotlin|TouchFish 安卓移动端，但是在国产安卓中容易被杀进程|Android|
-|Astra|暂无|@ILoveScratch2|[link](https://github.com/ILoveScratch2/TouchFish-Astra)|是|Dust|TouchFish 目前可以说是最好的发行版之一，UI 媲美 TFUR，全平台兼容性，但是目前是开发版本|All|
+|For Android|mobile|@pztsdy|[link](https://www.piaoztsdy.cn/TouchFish-for-Android/)|是|Kotlin|TouchFish 安卓移动端，但是在国产安卓中容易被杀进程，如有需要在手机中使用建议使用 **Astra 版本**|Android|
+|Astra|暂无|@ILoveScratch2|[link](https://github.com/ILoveScratch2/TouchFish-Astra)|是|Dust|TouchFish 目前可以说是最好的发行版之一，UI 媲美 TFUR，有 Markdown 渲染和 LaTeX 支持，以及全平台兼容性，但是目前是开发版本，且不支持多行|All|
 |More(Lite)|More|@xx2860|[link](https://gitee.com/xx2870/touchfish_more)|是|Python|有更好的性能，更快的下载速度（算是镜像站）|Windows, MacOS, Linux|
 
-## MacOS 用户注意
+> [!WARNING] MacOS 用户注意
+> 该软件需要打开任意来源以正常运行。
+> 系统设置 – 安全性与隐私 – 安全性 – 允许以下来源的应用程序 – 点击 App Store 与已知开发者选项，然后选择 任何来源。
 
-该软件需要打开任意来源以正常运行。
-
-系统设置 – 安全性与隐私 – 安全性 – 允许以下来源的应用程序 – 点击 App Store 与已知开发者选项，然后选择 任何来源。
-
-## Linux 用户注意
-
-本软件仅支持在具有 UI 界面的 Linux 发行版中运行。
+> [!WARNING] Linux 用户注意
+> 本软件仅支持在具有 UI 界面的 Linux 发行版中运行。
+> 如果需要在勿 UI 界面的 Linux 发行版中运行，请运行 [CLI 版本](clientcli.py)。
 
 ## server 的使用
 
