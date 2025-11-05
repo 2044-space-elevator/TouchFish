@@ -345,7 +345,7 @@ def receive_msg():
                 output = data
             else:
                 output = format_msg(data, username_tmp)
-                flush_queue.put(f"[{time_str()}] User {address[i]} sent a message:" + output)
+            flush_queue.put(f"[{time_str()}] User {address[i]} sent a message:" + output)
             if "[FILE_END]" in data:
                 flush_queue.put("-" * 100)
                 flush_queue.put(f"[{time_str()}] Transfer finished.")
