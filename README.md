@@ -52,7 +52,7 @@
 ## Linux 用户注意
 > [!WARNING]
 > 本软件仅支持在具有 UI 界面的 Linux 发行版中运行。\
-> 如果需要在勿 UI 界面的 Linux 发行版中运行，请运行 [CLI 版本](clientcli.py)。
+> 如果需要在无 UI 界面的 Linux 发行版中运行，请运行 [CLI 版本](clientcli.py)。
 
 ## server 的使用
 
