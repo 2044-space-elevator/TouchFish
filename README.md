@@ -41,7 +41,7 @@
 |Plus|Plus|@ayf2192538031|[link](https://github.com/2044-space-elevator/TouchFishPlus)|否|Python|拥有更多功能，但不同 Plus 版本不兼容。|Windows(A), MacOS(A), Linux(AB)|
 |Pro|Pro|@BoXueDuoCai|[link](https://github.com/PigeonTechGroup/TouchFishPro)|是|Python|支持 Markdown，有能凑合着看的 LaTeX，用户高亮|Windows(A), MacOS(A), Linux(AB)|
 |For Android|mobile|@pztsdy|[link](https://www.piaoztsdy.cn/TouchFish-for-Android/)|是|Kotlin|TouchFish 安卓移动端，**不建议使用**~~除非你真的有什么特殊需求~~，但是在国产安卓中容易被杀进程，如有需要在手机中使用建议使用 Astra 版本|Android|
-|Astra|暂无|@ILoveScratch2|[link](https://github.com/ILoveScratch2/TouchFish-Astra)|是|Dust|TouchFish 目前可以说是最好的发行版之一，UI 媲美 TFUR，有 Markdown 渲染和 LaTeX 支持，以及全平台兼容性，但是目前是开发版本，且不支持多行|All(B)|
+|Astra|暂无|@ILoveScratch2|[link](https://github.com/ILoveScratch2/TouchFish-Astra)|是|Dart|TouchFish 目前可以说是最好的发行版之一，UI 媲美 TFUR，有 Markdown 渲染和 LaTeX 支持，以及全平台兼容性，但是目前是开发版本，且不支持多行|All(B)|
 |More(Lite)|More|@xx2860|[link](https://gitee.com/xx2870/touchfish_more)|是|Python|有更好的性能，更快的下载速度（算是镜像站）|Windows(C), MacOS(C), Linux(B)|
 
 ## MacOS 用户注意
