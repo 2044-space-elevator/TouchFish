@@ -87,7 +87,7 @@ def receive_ret():
             msg = json.loads(msg_str)
         except Exception as err:
             with open("admin_err.log", "a+") as file:
-                file.write("JSON解析错误：" + str(err) + "\n")
+                file.write("JSON 解析错误：" + str(err) + "\n")
             continue
         if msg["type"] == "removed":
             print("\n\n你已被服务器移除出管理员列表！")
@@ -101,10 +101,10 @@ def receive_ret():
 
 class Admin(cmd.Cmd):
     prompt = f"{IP}:{PORT} (admin)> "
-    intro = f"""详细的使用指南，见 wiki：https://github.com/2044-space-elevator/TouchFish/wiki/How-to-use-admin (基本命令相同，但是没有admin命令和flush命令)
+    intro = f"""详细的使用指南，见 wiki：https://github.com/2044-space-elevator/TouchFish/wiki/How-to-use-admin (基本命令相同，但是没有 admin 命令)
 可以使用 cmd type admin_err.log 查看错误日志 (Windows) 或 cmd cat admin_err.log (Linux)。（当然一般不会有错误）
 当前版本：{CURRENT_VERSION}，为测试版，可能会有一些问题。
-其余懒得写了，看server里的吧"""
+其余懒得写了，看 server 里的吧"""
 
     def __init__(self):
         cmd.Cmd.__init__(self)
@@ -140,12 +140,6 @@ class Admin(cmd.Cmd):
         查询加入请求（其余命令详见 wiki）
         """
         send_msg("req", arg)
-    
-    def do_flush(self, arg):
-        """
-        注意：在 admin 中不起作用
-        """
-        send_msg("flush", "")
 
     def do_cmd(self, arg):
         """
@@ -157,7 +151,7 @@ class Admin(cmd.Cmd):
             return
         try:
             result = os.system(arg)
-            if result != 0:
+            if result:
                 print("[ERROR] Command failed! Return code: " + str(result))
         except Exception as err:
             print("命令执行失败！错误信息:", err)
