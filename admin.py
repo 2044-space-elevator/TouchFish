@@ -11,13 +11,11 @@ import os
 result_event = threading.Event()
 result_msg = None
 
-CURRENT_VERSION = "beta-20251005-2"
-
 """
 # 该功能以后实现
 if __name__ == "__main__":
     try:
-        if len(argv) - 1 > 0 and (argv[1] == "-h" or argv[1] == "--help" or argv[2] == "-h" or argv[2] == "--help"): # argv[2] 照顾python admin.py
+        if len(argv) - 1 > 0 and (argv[1] == "-h" or argv[1] == "--help" or argv[2] == "-h" or argv[2] == "--help"): # argv[2] 照顾 python admin.py
             admin = Admin()
             admin.do_help("")
             os._exit(0)
