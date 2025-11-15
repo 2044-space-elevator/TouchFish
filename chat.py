@@ -620,7 +620,7 @@ class Server(cmd.Cmd):
         try:
             flush_queue.put(f"[{time_str()}] <{rid}> User {the_requests[rid][1]} was rejected to enter the chatting room.\n")
             OP_MSG += f"{operator} 拒绝第 {rid} 号请求（用户 {the_requests[rid][1]}。\n"
-            the_requests[rid][0].send(bytes(f"[系统提示] {operator} 被拒绝加入聊天室\n", encoding="utf-8"))
+            the_requests[rid][0].send(bytes(f"[系统提示] {operator} 拒绝您加入聊天室\n", encoding="utf-8"))
             the_requests[rid] = None
         except:
             OP_MSG += f"[Error] 第 {rid} 次提示信息发送失败\n"
