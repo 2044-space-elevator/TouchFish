@@ -1,7 +1,7 @@
 # TouchFish - 局域网聊天解决方案
 
 [官网 - BOPID](http://bopid.cn/chat)  
-[网站和文档 - ILoveScratch](http://tf.ilovescratch.dpdns.org)
+[网站和文档 - ILoveScratch](http://tf.ilovescratch.dpdns.org)  
 [TouchFish 101 文档 - Notion](http://touchfish-dev.notion.site/touchfish-101)
 
 > **重要通知：贡献者须知**
