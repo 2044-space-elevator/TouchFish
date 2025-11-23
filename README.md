@@ -1,5 +1,9 @@
 # TouchFish - 局域网聊天解决方案
 
+[官网 - BOPID](http://bopid.cn/chat)  
+[网站和文档 - ILoveScratch](http://tf.ilovescratch.dpdns.org)
+[TouchFish 101 文档 - Notion](http://touchfish-dev.notion.site/touchfish-101)
+
 > **重要通知：贡献者须知**
 > 
 > 感谢您对 TouchFish 项目的关注和贡献！为避免您的努力付诸东流，请在提交 PR 前务必仔细阅读
