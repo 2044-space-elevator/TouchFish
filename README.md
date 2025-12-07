@@ -1,8 +1,8 @@
 # TouchFish - 局域网聊天解决方案
 
 > [!WARNING]
-> **TouchFish 正在更新到 V4 版本，自 V4 后不再向后兼容**
-> [前往 v4](https://github.com/035966-L3/TouchFish) 
+> 这是 v3 版本的存档内容，TouchFish目前已经更新到了  
+> v4版本，请尽快更新
 
 
 [官网 - BOPID](http://bopid.cn/chat)\
