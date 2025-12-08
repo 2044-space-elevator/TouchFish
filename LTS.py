@@ -1421,7 +1421,8 @@ def main():
     auto_start = True
     try:
         for i in range(5, 0, -1):
-            prints("剩余 "+str(i)+" 秒", "yellow")
+            prints("剩余 "+str(i)+" 秒...", "yellow")
+            time.sleep(1)
     except KeyboardInterrupt:
         auto_start = False
     except:
