@@ -1417,7 +1417,7 @@ def main():
     prints("欢迎使用 TouchFish 聊天室！", "yellow")
     prints("当前程序版本：{}".format(VERSION), "yellow")
     prints("5 秒后将会自动按上次的配置启动。", "yellow")
-    prints("按下 Ctrl + C 以指定启动模式：", "yellow")
+    prints("按下 Ctrl + C 以指定启动配置。", "yellow")
     auto_start = True
     try:
         for i in range(5,0,-1):
