@@ -1416,7 +1416,7 @@ def main():
     clear_screen()
     prints("欢迎使用 TouchFish 聊天室！", "yellow")
     prints("当前程序版本：{}".format(VERSION), "yellow")
-    prints("5 秒后将会自动启动到上次的配置", "yellow")
+    prints("5 秒后将会自动按上次的配置启动。", "yellow")
     prints("按下 Ctrl + C 以指定启动模式：", "yellow")
     auto_start = True
     try:
