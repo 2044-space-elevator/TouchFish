@@ -1420,7 +1420,7 @@ def main():
     prints("按下 Ctrl + C 以指定启动配置。", "yellow")
     auto_start = True
     try:
-        for i in range(5,0,-1):
+        for i in range(5, 0, -1):
             prints("剩余 "+str(i)+" 秒", "yellow")
     except KeyboardInterrupt:
         auto_start = False
