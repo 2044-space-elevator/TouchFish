@@ -1098,7 +1098,6 @@ def thread_gate():
 
         # 2. 检查是否有 Offline 的同名用户，如果有则复用其 UID
         existing_uid = None
-        for
         for i, user in enumerate(users):
             if user['status'] == "Offline" and user['username'] == data['username']:
                 existing_uid = i
