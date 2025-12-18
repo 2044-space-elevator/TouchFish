@@ -1040,7 +1040,7 @@ def thread_gate():
         if EXIT_FLAG:
             exit()
             break
-        
+
         conntmp, addresstmp = None, None
         try:
             conntmp, addresstmp = s.accept()
@@ -1049,7 +1049,7 @@ def thread_gate():
             conntmp.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1048576)
         except:
             continue
-        
+
         time.sleep(2)
         data = ""
         while True:
@@ -1057,7 +1057,7 @@ def thread_gate():
                 data += conntmp.recv(65536).decode('utf-8')
             except:
                 break
-        
+
         tagged = False
         for method in ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']:
             if method in data:
@@ -1071,7 +1071,7 @@ def thread_gate():
                 break
         if tagged:
             continue
-        
+
         try:
             data = json.loads(data)
             if not isinstance(data, dict) or set(data.keys()) != {"type", "username"} or data['type'] != "GATE.REQUEST" or not isinstance(data['username'], str) or not data['username']:
@@ -1080,9 +1080,43 @@ def thread_gate():
             log_queue.put(json.dumps({'type': 'GATE.INCORRECT_PROTOCOL', 'time': time_str(), 'ip': addresstmp}))
             conntmp.close()
             continue
+
+        # 1. 先检查是否有重复的在线用户
+        duplicate_online = False
+        for user in users:
+            if user['status'] in ["Online", "Admin", "Root"] and user['username'] == data['username']:
+                duplicate_online = True
+                break
         
-        uid = len(users)
-        users.append({"body": conntmp, "buffer": "", "ip": addresstmp, "username": data['username'], "status": "Pending", 'busy': False})
+        if duplicate_online:
+            # 拒绝连接
+            result = "Duplicate usernames"
+            conntmp.send(bytes(json.dumps({'type': 'GATE.RESPONSE', 'result': result}) + "\n", encoding="utf-8"))
+            log_queue.put(json.dumps({'type': 'GATE.CLIENT_REQUEST.LOG', 'time': time_str(), 'ip': addresstmp, 'username': data['username'], 'uid': -1, 'result': result}))
+            conntmp.close()
+            continue
+
+        # 2. 检查是否有 Offline 的同名用户，如果有则复用其 UID
+        existing_uid = None
+        for
+        for i, user in enumerate(users):
+            if user['status'] == "Offline" and user['username'] == data['username']:
+                existing_uid = i
+                break
+        
+        if existing_uid is not None:
+            # 复用现有用户的 UID
+            uid = existing_uid
+            users[uid]['body'] = conntmp
+            users[uid]['ip'] = addresstmp
+            users[uid]['buffer'] = ""
+            users[uid]['busy'] = False
+            users[uid]['status'] = "Pending"
+        else:
+            # 创建新用户
+            uid = len(users)
+            users.append({"body": conntmp, "buffer": "", "ip": addresstmp, "username": data['username'], "status": "Pending", 'busy': False})
+
         result = "Accepted"
         if config['gate']['enter_check']:
             result = "Pending review"
@@ -1090,19 +1124,16 @@ def thread_gate():
             result = "IP is banned"
         if online_count == config['general']['max_connections']:
             result = "Room is full"
-        for user in users[:-1]:
-            if user['status'] in ["Online", "Admin", "Root"] and users[uid]['username'] == user['username']:
-                result = "Duplicate usernames"
         for word in config['ban']['words']:
             if word in users[uid]['username']:
                 result = "Username consists of banned words"
-        
+
         users[uid]['body'].send(bytes(json.dumps({'type': 'GATE.RESPONSE', 'result': result}) + "\n", encoding="utf-8"))
         log_queue.put(json.dumps({'type': 'GATE.CLIENT_REQUEST.LOG', 'time': time_str(), 'ip': users[uid]['ip'], 'username': users[uid]['username'], 'uid': uid, 'result': result}))
         for i in range(len(users)):
             if users[i]['status'] in ["Online", "Admin", "Root"]:
                 send_queue.put(json.dumps({'to': i, 'content': {'type': 'GATE.CLIENT_REQUEST.ANNOUNCE', 'username': users[uid]['username'], 'uid': uid, 'result': result}}))
-        
+
         if not result in ["Accepted", "Pending review"]:
             users[uid]['status'] = "Rejected"
             users[uid]['body'].close()
@@ -1115,13 +1146,14 @@ def thread_gate():
             users[uid]['body'].setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, True)
             users[uid]['body'].ioctl(socket.SIO_KEEPALIVE_VALS, (1, 180000, 30000))
         online_count += 1
-        
+
         if result == "Accepted":
             users[uid]['status'] = "Online"
             users_abstract = []
             for i in range(len(users)):
                 users_abstract.append({"username": users[i]['username'], "status": users[i]['status']})
             users[uid]['body'].send(bytes(json.dumps({'type': 'SERVER.DATA', 'server_version': VERSION, 'uid': uid, 'config': config, 'users': users_abstract, 'chat_history': history}) + "\n", encoding="utf-8"))
+
 
 def thread_process():
     global online_count
