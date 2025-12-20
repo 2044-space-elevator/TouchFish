@@ -33,10 +33,13 @@
 3 Server
   3.1 Start
     { type: "SERVER.START", time: time, server_version: string, config: JSON }
-  3.2 Stop
-    { type: "SERVER.STOP", time: time }
-  3.3 Data
+  3.2 Data
     { type: "SERVER.DATA", server_version: string, uid: number, config: JSON, users: [JSON, ...], chat_history: [JSON, ...] } // users: { username: string, status: "Rejected" | "Kicked" | "Offline" | "Pending" | "Online" | "Admin" | "Root" }, chat_history: { time: time, from: number, content: string, to: number | -1 | -2 }, public messages only
+  3.3 Stop
+    3.3.1 Announce
+    { type: "SERVER.STOP.ANNOUNCE" }
+    3.3.2 Log
+    { type: "SERVER.STOP.LOG", time: time }
   3.4 Config
     3.4.1 Post
       { type: "SERVER.CONFIG.POST", key: string, value: any }
