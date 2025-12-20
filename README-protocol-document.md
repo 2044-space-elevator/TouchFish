@@ -1,6 +1,9 @@
 # TouchFish v4 协议文档
 
 本协议分为三个部分，`Gate`，`Chat` 和 `Server`，协议均使用 NDJSON（JSON 格式，相邻两个 JSON 以换行符分隔）格式进行发送。英文版和 JSON 代码块见 [protocol.txt](protocol.txt)。
+**注：本文档内容大部分由AI生成，可能会有漏洞或错误，具体请阅读[protocol.txt](protocol.txt)**
+
+本协议分为三个部分，`Gate`，`Chat` 和 `Server`，协议均使用 json 格式进行发送。英文版和 json 代码块见 [protocol.txt](protocol.txt)。
 
 ---
 
