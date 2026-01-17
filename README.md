@@ -128,7 +128,11 @@ TouchFish 拥有丰富的衍生版本生态系统，满足不同用户需求：
 | Plus | Plus | @ayf2192538031 | [github](https://github.com/2044-space-elevator/TouchFishPlus), [mirror](https://mirror.ilovescratch.us.ci/TouchFish/Plus%20(%E6%BA%90%E4%BB%A3%E7%A0%81)/) | ❌ | Python | Win*, macOS*, Linux* | 增强功能集 | ❌ |
 | Pro | Pro | @BoXueDuoCai | [github](https://github.com/PigeonTechGroup/TouchFishPro), [mirror](https://mirror.ilovescratch.us.ci/TouchFish/Pro%20(%E6%BA%90%E4%BB%A3%E7%A0%81)/) | ✅ | Python | Win*, macOS*, Linux* | Markdown，LaTeX，用户高亮 | ❌ |
 | Android | (已废除) | @pztsdy | [github](https://github.com/pztsdy/TouchFish-for-mobile), [mirror](https://mirror.ilovescratch.us.ci/TouchFish/Mobile%20%EF%BC%88%E4%B8%8D%E6%8E%A8%E8%8D%90%EF%BC%89/) | ✅ | Kotlin | Android | 移动端（有使用限制）（已停更） | ❌ |
-| More | More | @xx2860 | [github](https://gitee.com/xie2870/touchfish_more), [gitee](https://gitee.com/xx2870/touchfish_more), [mirror](https://mirror.ilovescratch.us.ci/TouchFish/More(Lite)/) | ✅ | Python | Win*, macOS*, Linux (UI) | 性能优化，镜像站 | ❌ |
+| More | More | @xie2870 | [github](https://gitee.com/xie2870/touchfish_more), [gitee](https://gitee.com/xx2870/touchfish_more), [mirror](https://mirror.ilovescratch.us.ci/TouchFish/More(Lite)/) | ✅ | Python | Win*, macOS*, Linux (UI) | 性能优化，镜像站 | ❌ |
 
 > *注：*  
 > 标 * 的版本可能需要自行编译、直接运行代码或缺少预编译包  
+
+---
+
+> 特别感谢 @xie2870 对 v4 开发的间接指导。（~~实则是 v4 规划时将 More 的所有拓展功能均纳入了规划~~）
