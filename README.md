@@ -45,7 +45,7 @@
 > 不建议下载预编译的二进制文件，建议通过源代码部署
 > `wget https://github.com/2044-space-elevator/TouchFish/releases/download/v4.7.0/LTS.py && python3 LTS.py`
 > 
-> （也可以通过 @ILoveScratch2 提供的镜像站，但是截至 2026/2/23 只更新到了 v4.6 版本：`wget https://mirror.ilovescratch.us.ci/api/net/379814722/LTS.py && python3 LTS.py`）
+> （也可以通过 @ILoveScratch2 提供的镜像站：`wget https://mirror.ilovescratch.us.ci/api/net/379814722/LTS.py && python3 LTS.py`）
 
 1. **获取内网 IP 地址**：
    - **Windows**: 命令提示符执行 `ipconfig`，查找 "无线局域网适配器 WLAN" 下的 "IPv4 地址"
