@@ -1,6 +1,6 @@
 # Maintainer: TouchFish Community <johnchiao@outlook.com>
 pkgname=touchfish
-pkgver=4.7.0
+pkgver=4.8.0
 pkgrel=1
 pkgdesc="FOSS multi-distribution LAN chatting tool"
 arch=('any')
