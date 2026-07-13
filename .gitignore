@@ -4,5 +4,7 @@ TouchFishFiles
 log.ndjson
 src/
 pkg/
+bin/*
+*.exe
 *.zst
 *.gz
